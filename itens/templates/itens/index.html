@@ -1,0 +1,111 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Achados e Perdidos - UnDF</title>
+    <link rel="stylesheet" href="{% static 'itens/style.css' %}">
+</head>
+<body>
+
+    <div class="container">
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">
+                   <img src="{% static 'itens/logo.pequena.png' %}" width="190" height="140"> 
+                </div>
+                <h1>Achados e Perdidos - UnDF</h1>
+            </div>
+            <nav class="menu">
+                <a href="#" class="menu-item active" data-tab="inicio">Início</a>
+                <a href="#" class="menu-item" data-tab="recentes">Itens  Mais Recentes</a>
+                <a href="#" class="menu-item" data-tab="adicionar">Adicionar Novo Item Encontrado</a>
+                <a href="#" class="menu-item" data-tab="sobre">Requisitos de Recuperação e Sobre o Site</a>
+            </nav>
+            <footer class="footer-sidebar">
+                © Achados e Perdidos - UnDF 2025
+            </footer>
+        </aside>
+
+        <main class="content">
+
+
+            <section id="inicio" class="tab-content active">
+                <input type="text" id="searchInputInicio" placeholder="Buscar item..." class="search-bar">
+                
+                <div id="itemsListInicio" class="items-list">
+                    </div>
+                
+                <div id="paginationInicio" class="pagination">
+                    </div>
+            </section>
+
+            <section id="recentes" class="tab-content hidden">
+                <div class="title1">
+                <h2>Itens Mais Recentes</h2>
+                </div>
+                <input type="text" id="searchInputRecentes" placeholder="Buscar item recente..." class="search-bar">
+                
+                <div id="itemsListRecentes" class="items-list">
+                    </div>
+                <div id="paginationRecentes" class="pagination">
+                    </div>
+            </section>
+
+            <section id="adicionar" class="tab-content hidden">
+                <div class="title2">
+                <h2>Adicionar Novo Item Encontrado</h2>
+                </div>
+                <form id="addItemForm" class="add-form">
+                    <div class="form-group">
+                        <label for="itemName">Nome do Item:</label>
+                        <input type="text" id="itemName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemLocation">Onde Foi Encontrado:</label>
+                        <input type="text" id="itemLocation" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemDate">Data do Encontro:</label>
+                        <input type="date" id="itemDate" required>
+                    </div>
+                    <button type="submit" class="submit-button">Registrar Item</button>
+                    <p id="message"></p>
+                </form>
+            </section>
+
+            <section id="sobre" class="tab-content hidden">
+                <div class="title3">
+                <h2>Requisitos de Recuperação e Sobre o Site</h2>
+                </div>
+                <blockquote class="block">
+                <div class= "about"> 
+                    <strong> Sobre o site:</strong> 
+                <div class="pad">              
+                <p>O site Achados e Perdidos - UnDF é uma plataforma simples criada para ajudar a comunidade do campus norte a localizar e devolver itens perdidos dentro da universidade.</p>  
+                </div>             
+                <p> A UnDF não se responsabiliza por possíveis danos, perdas e furtos de objetos perdidos dentro do campus, sendo rensponsabilidade do(a) dono(a) prezar pela integridade dos objetos</p>
+                </div>
+                </blockquote>
+
+                <blockquote class="note">
+                    <div class="request">
+                    <strong>Requisitos para Recuperação:</strong>
+                    </div>
+                    <ul>
+                        <li>Compareça à sala da reitoria (sala 110) entre os horários de 8h até 21h;</li>
+                        <li>Apresentação de documento oficial com foto que comprove a identidade;</li>
+                        <li>Apresentar matrícula em algum curso da UnDF;</li>
+                        <li>Prover detalhes específicos sobre o item (cor exata, marcas, conteúdo, etc.) que não estejam visíveis na descrição do site.</li>
+                        <li>Assinatura do Termo de Devolução.</li>
+                    </ul>
+                </blockquote>
+            </section>
+
+         </main>
+    </div>
+
+    <script src="{% static 'itens/script.js' %}"></script>
+</body>
+</html>

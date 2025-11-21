@@ -1,0 +1,306 @@
+/* Variáveis para fácil ajuste de cores */
+:root {
+    --dark-blue: #1d245b;
+    --medium-blue: #00367e;
+    --light-blue: #8fcdef;
+    --highlight-blue: #bce8ff;
+    --text-color: #333;
+    --white: #ffffff;
+    --grey-bg: #f4f4f4;
+    --danger-red: #c0392b;
+    --danger-red-hover: #e74c3c;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background-color: var(--grey-bg);
+    color: var(--text-color);
+}
+
+.container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* --- Menu Lateral (Sidebar) --- */
+.sidebar {
+    width: 400px;
+    background-color: var(--dark-blue);
+    color: var(--white);
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+.logo-icon{
+    padding-left: 95px;
+
+}
+
+.logo h1 {
+    font-size: 1.5em;
+    font-weight: bold;
+    padding-left: 40px;
+    padding-bottom: 40px;
+}
+
+.menu-item {
+    display: block;
+    padding: 15px 20px;
+    text-decoration: none;
+    color: var(--white);
+    transition: background-color 0.2s;
+}
+
+.menu-item:hover {
+    background-color: var(--medium-blue);
+}
+
+.menu-item.active {
+    background-color: var(--highlight-blue);
+    color: var(--dark-blue);
+    font-weight: bold;
+}
+
+.footer-sidebar {
+    margin-top: auto; 
+    padding: 20px;
+    font-size: 0.75em;
+    opacity: 0.7;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.request{
+  padding-bottom: 20px;
+   font-size: xx-large;
+}
+
+/* --- Conteúdo Principal --- */
+.content {
+    flex-grow: 1;
+    padding: 30px;
+}
+
+.tab-content {
+    max-width: 800px; 
+}
+
+.tab-content.hidden {
+    display: none;
+}
+
+/* --- Barra de Busca --- */
+.search-bar {
+    padding: 10px 15px;
+    width: 250px;
+    margin-bottom: 25px;
+    border: 1px solid var(--light-blue);
+    border-radius: 5px;
+    font-size: 1em;
+    background-color: #f0f0f0;
+    cursor: pointer;
+}
+
+.search-bar:focus {
+    outline: none;
+    border-color: var(--highlight-blue);
+    box-shadow: 0 0 5px var(--highlight-blue);
+}
+
+/* --- Estilo da Lista de Itens (Baseado no Anexo) --- */
+.item-card {
+    background-color: var(--highlight-blue);
+    color: var(--dark-blue);
+    padding: 15px 20px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    font-size: 1.1em;
+    width: 1000px;
+}
+
+.title2 h2{
+    padding-bottom: 40px;
+    font-size:xx-large;
+    font-weight: bold;
+}
+.title1 h2{
+    padding-bottom: 40px;
+    font-size:xx-large;
+    font-weight: bold;
+}
+
+.title3 h2{
+    padding-bottom: 50px;
+    font-size:xx-large;
+    font-weight: bold;
+}
+
+.item-card h3 {
+    margin: 0 0 5px 0;
+    font-size: 1.2em;
+}
+
+.about p{
+    font-size: 1.0em;
+    font-weight: bold; 
+
+}
+
+.item-card p {
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+.item-right-section {
+    display: flex;
+    align-items: center;
+    gap: 20px; 
+}
+
+.item-date {
+    font-weight: bold;
+    white-space: nowrap; 
+}
+.delete-button {
+    background-color: var(--danger-red);
+    color: var(--white);
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.2em;
+    font-weight: bold;
+    line-height: 28px;
+    text-align: center;
+    transition: background-color 0.2s;
+}
+
+.delete-button:hover {
+    background-color: var(--danger-red-hover);
+}
+
+
+/* --- Paginação --- */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+.page-number {
+    background-color: #ccc;
+    color: var(--white);
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.page-number:hover {
+    background-color: var(--medium-blue);
+}
+
+.page-number.active {
+    background-color: var(--highlight-blue);
+    color: var(--dark-blue);
+    font-weight: bold;
+}
+
+/* --- Formulário Adicionar Item --- */
+.add-form {
+    background-color: var(--white);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border: #00367e;
+}
+
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
+}
+
+.submit-button {
+    background-color: var(--dark-blue);
+    color: var(--white);
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s;
+}
+
+.submit-button:hover {
+    background-color: var(--medium-blue);
+}
+
+/* Bloco de citação (para a aba Sobre) */
+.note {
+    background-color: #e6f7ff;
+    border-left: 5px solid var(--highlight-blue);
+    padding: 15px;
+    margin: 20px 0;
+    color: var(--text-color);
+    width: 1000px;
+}
+
+
+.note strong {
+    color: var(--dark-blue);
+    padding-bottom: 30px;
+}
+
+.note ul {
+    font-weight: bold;
+    margin-top: 10px;
+    padding-left: 20px;
+}
+
+.block {
+    background-color: #e6f7ff;
+    border-left: 5px solid var(--highlight-blue);
+    padding: 15px;
+    margin: 20px 0;
+    color: var(--text-color);
+    width: 1000px;
+}
+
+.about strong{
+    color: var(--dark-blue);
+    font-size: xx-large;
+    padding-top: 50px;
+}
+
+.pad {
+    padding-top: 30px;
+}

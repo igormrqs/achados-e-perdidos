@@ -10,166 +10,182 @@
 <body>
 
     <div class="container">
+        <!-- Sidebar lateral -->
         <aside class="sidebar">
             <div class="logo">
                 <div class="logo-icon">
-                   <img src="{% static 'itens/logo.pequena.png' %}" width="190" height="140"> 
+                    <img src="{% static 'itens/logo.pequena.png' %}"
+                         alt="Logo Achados e Perdidos - UnDF">
                 </div>
                 <h1>Achados e Perdidos - UnDF</h1>
             </div>
-                <nav class="menu">
-                    <a href="#" class="menu-item active" data-tab="inicio">Início</a>
-                    <a href="#" class="menu-item" data-tab="recentes">Itens Mais Recentes</a>
-                    <a href="#" class="menu-item" data-tab="sobre">Requisitos de Recuperação e Sobre o Site</a>
-                </nav>
 
-            <footer class="footer-sidebar">
-                © Achados e Perdidos - UnDF 2025
-            </footer>
+            <nav class="menu">
+                <a href="#" class="menu-item active" data-tab="inicio">Início</a>
+                <a href="#" class="menu-item" data-tab="recentes">Itens Mais Recentes</a>
+                <a href="#" class="menu-item" data-tab="sobre">
+                    Requisitos de Recuperação e Sobre o Site
+                </a>
+            </nav>
+
+            <p class="footer-sidebar">© Achados e Perdidos - UnDF 2025</p>
         </aside>
 
+        <!-- Conteúdo principal -->
         <main class="content">
 
+            <!-- Aba: Início -->
+            <section id="inicio" class="tab-content">
+                <div class="tab-header">
+                    <h2>Itens cadastrados</h2>
+                    <p>Consulte os itens atualmente registrados pela equipe interna.</p>
+                </div>
 
-            <section id="inicio" class="tab-content active">
-                <input type="text" id="searchInputInicio" placeholder="Buscar item..." class="search-bar">
-                
-                <div id="itemsListInicio" class="items-list">
-                    </div>
-                
-                <div id="paginationInicio" class="pagination">
-                    </div>
+                <div class="search-container">
+                    <label for="searchInputInicio">Buscar item:</label>
+                    <input
+                        type="text"
+                        id="searchInputInicio"
+                        class="search-bar"
+                        placeholder="Busque por nome ou local onde foi encontrado"
+                    >
+                </div>
+
+                <div id="itemsListInicio" class="items-list"></div>
+                <div id="paginationInicio" class="pagination"></div>
             </section>
 
+            <!-- Aba: Itens mais recentes -->
             <section id="recentes" class="tab-content hidden">
-                <div class="title1">
-                <h2>Itens Mais Recentes</h2>
+                <div class="tab-header">
+                    <h2>Itens mais recentes</h2>
+                    <p>Alguns dos últimos itens cadastrados no Achados e Perdidos.</p>
                 </div>
-                <input type="text" id="searchInputRecentes" placeholder="Buscar item recente..." class="search-bar">
-                
-                <div id="itemsListRecentes" class="items-list">
-                    </div>
-                <div id="paginationRecentes" class="pagination">
-                    </div>
+
+                <div class="search-container">
+                    <label for="searchInputRecentes">Filtrar:</label>
+                    <input
+                        type="text"
+                        id="searchInputRecentes"
+                        class="search-bar"
+                        placeholder="Busque por nome ou local onde foi encontrado"
+                    >
+                </div>
+
+                <div id="itemsListRecentes" class="items-list"></div>
+                <div id="paginationRecentes" class="pagination"></div>
             </section>
 
-
+            <!-- Aba: Requisitos de Recuperação e Sobre o Site -->
             <section id="sobre" class="tab-content hidden">
-    <div class="title3">
-        <h2>Requisitos de Recuperação e Sobre o Site</h2>
-    </div>
-
-    <blockquote class="block">
-        <div class="about">
-            <strong>Sobre o site:</strong>
-            <div class="pad">
-                <p>
-                    O site <strong>Achados e Perdidos - UnDF</strong> é uma plataforma de
-                    <strong>consulta</strong> dos itens encontrados nas dependências da universidade.
-                    Ele existe para facilitar a comunicação entre a comunidade acadêmica e a equipe
-                    responsável pelo Achados e Perdidos.
-                </p>
-                <p>
-                    <strong>O cadastro dos itens é feito exclusivamente por servidores internos</strong>
-                    (reitoria/secretaria/setor responsável). Ou seja, um item só aparece aqui depois
-                    de ser entregue presencialmente, conferido e registrado pela equipe.
-                </p>
-                <p>
-                    As informações exibidas (nome do item, local, data, categoria) são
-                    <strong>indicativas</strong> e podem não refletir em tempo real a situação do
-                    estoque físico. Este site é um apoio ao processo presencial de devolução,
-                    que continua sendo o canal oficial.
-                </p>
-                <p>
-                    Ao usar o botão <strong>“Este item pode ser meu”</strong>, você envia uma
-                    <strong>reivindicação (blind claim)</strong> para a equipe interna. Essa
-                    solicitação é analisada por servidores da UnDF e não garante, por si só,
-                    a reserva ou a devolução do item.
-                </p>
-                <p>
-                    Os dados de contato informados no formulário de reivindicação são utilizados
-                    apenas pela equipe interna para fins de contato sobre o item e
-                    <strong>não ficam visíveis publicamente no site</strong>.
-                </p>
-                <p>
-                    A UnDF não se responsabiliza por possíveis danos, extravios ou perdas
-                    decorrentes de uso indevido dos objetos após a devolução. É responsabilidade
-                    do(a) dono(a) prezar pela integridade dos seus pertences.
-                </p>
-            </div>
-        </div>
-    </blockquote>
-
-    <blockquote class="note">
-        <div class="request">
-            <strong>Requisitos para Recuperação Presencial:</strong>
-        </div>
-        <ul>
-            <li>Comparecer ao setor responsável (reitoria/sala indicada pela UnDF) no horário de atendimento;</li>
-            <li>Apresentar documento oficial com foto que comprove a identidade;</li>
-            <li>Apresentar matrícula ativa em algum curso da UnDF, quando solicitado;</li>
-            <li>
-                Prover detalhes específicos sobre o item
-                (marcas, características internas, adesivos, conteúdo, senha de capa, etc.)
-                que <strong>não estejam visíveis</strong> na descrição do site;
-            </li>
-            <li>
-                Assinar o <strong>Termo de Devolução</strong> fornecido pelo setor responsável
-                (podendo incluir assinatura eletrônica ou registro digital interno);
-            </li>
-            <li>
-                Entender que o envio de uma reivindicação pelo site
-                <strong>não garante reserva automática</strong>:
-                os itens continuam sujeitos à ordem de atendimento e às regras internas da UnDF.
-            </li>
-        </ul>
-    </blockquote>
-</section>
-
-
-         </main>
-            <!-- Modal de Blind Claim (Reivindicação de item) -->
-        <div id="claimModal" class="modal hidden">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Este item pode ser meu</h3>
-                    <button type="button" id="claimCloseButton" class="modal-close">&times;</button>
+                <div class="title3">
+                    <h2>Requisitos de Recuperação e Sobre o Site</h2>
                 </div>
 
-                <div class="modal-body">
-                    <p>Você está enviando uma solicitação para o item:</p>
-                    <p><strong id="claimItemInfo">Nome do item - Local</strong></p>
+                <div class="about">
+                    <h3>Como funciona o site</h3>
+                    <p>
+                        O <strong>Achados e Perdidos – UnDF</strong> é um painel de
+                        <strong>consulta</strong> dos itens que já foram entregues e
+                        registrados pela equipe interna da universidade.
+                    </p>
+                    <p>
+                        Os objetos só aparecem aqui depois de serem recebidos
+                        presencialmente e cadastrados por servidores responsáveis.
+                        As informações mostradas (nome do item, local, data, categoria)
+                        são <strong>indicativas</strong> e podem não refletir em tempo real
+                        a situação do estoque físico.
+                    </p>
+
+                    <h3>Quem pode cadastrar itens?</h3>
+                    <ul class="about-list">
+                        <li>Somente servidores internos autorizados;</li>
+                        <li>Após conferência do item entregue presencialmente;</li>
+                        <li>Com registro em sistema interno e, quando necessário,
+                            em livro/planilha oficial.</li>
+                    </ul>
+
+                    <h3>O que você pode fazer aqui como usuário?</h3>
+                    <ul class="about-list">
+                        <li>Pesquisar itens que se pareçam com o que você perdeu;</li>
+                        <li>Ver local e data aproximada onde o objeto foi encontrado;</li>
+                        <li>
+                            Usar o botão <strong>“Este item pode ser meu”</strong> para
+                            enviar uma <strong>reivindicação (blind claim)</strong>.
+                        </li>
+                    </ul>
+
                     <p style="margin-top: 8px;">
-                        Descreva detalhes que só o verdadeiro dono saberia
-                        (como características internas, adesivos, capa, conteúdo, etc.).
+                        A reivindicação é analisada pela equipe interna. Ela
+                        <strong>não garante reserva automática</strong> do objeto, mas ajuda
+                        a organizar o atendimento e a triagem dos possíveis donos.
                     </p>
                 </div>
 
-                <form id="claimForm">
-                    <div class="form-group">
-                        <label for="claimNome">Seu nome completo:</label>
-                        <input type="text" id="claimNome" required>
-                    </div>
+                <div class="note">
+                    <h3>Guia rápido para recuperar um item</h3>
+                    <ul>
+                        <li>Verifique se há algum item semelhante ao seu na lista;</li>
+                        <li>Envie uma reivindicação pelo site, quando achar algo parecido;</li>
+                        <li>Compareça ao setor responsável pelo Achados e Perdidos na UnDF;</li>
+                        <li>Leve documento com foto e, se for o caso, comprovante de vínculo com a UnDF;</li>
+                        <li>
+                            Explique detalhes específicos do item que
+                            <strong>não aparecem</strong> na descrição pública
+                            (marcas internas, conteúdos, adesivos, senha de capa, etc.);
+                        </li>
+                        <li>
+                            Assine o termo ou registro de devolução usado pela unidade,
+                            finalizando o processo de retirada do objeto.
+                        </li>
+                    </ul>
+                </div>
+            </section>
 
-                    <div class="form-group">
-                        <label for="claimContato">Contato (e-mail, telefone ou matrícula):</label>
-                        <input type="text" id="claimContato">
-                    </div>
+        </main>
+    </div>
 
-                    <div class="form-group">
-                        <label for="claimDetalhes">Detalhes que comprovam que o item é seu:</label>
-                        <textarea id="claimDetalhes" rows="3" required></textarea>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="submit">Enviar Reivindicação</button>
-                    </div>
-
-                    <p id="claimMessage" class="claim-message"></p>
-                </form>
+    <!-- Modal de Blind Claim (Reivindicação de item) -->
+    <div id="claimModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Este item pode ser meu</h3>
+                <button type="button" id="claimCloseButton" class="modal-close">&times;</button>
             </div>
-        </div>
 
+            <div class="modal-body">
+                <p>Você está enviando uma solicitação para o item:</p>
+                <p><strong id="claimItemInfo">Nome do item - Local</strong></p>
+                <p style="margin-top: 8px;">
+                    Descreva detalhes que só o verdadeiro dono saberia
+                    (características internas, adesivos, capa, conteúdo, etc.).
+                </p>
+            </div>
+
+            <form id="claimForm">
+                <div class="form-group">
+                    <label for="claimNome">Seu nome completo:</label>
+                    <input type="text" id="claimNome" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="claimContato">Contato (e-mail, telefone ou matrícula):</label>
+                    <input type="text" id="claimContato">
+                </div>
+
+                <div class="form-group">
+                    <label for="claimDetalhes">Detalhes que comprovam que o item é seu:</label>
+                    <textarea id="claimDetalhes" rows="3" required></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit">Enviar Reivindicação</button>
+                </div>
+
+                <p id="claimMessage" class="claim-message"></p>
+            </form>
+        </div>
+    </div>
 
     <script src="{% static 'itens/script.js' %}"></script>
 </body>

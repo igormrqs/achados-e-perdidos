@@ -45,9 +45,10 @@ body {
     display: flex;
     align-items: stretch;
     justify-content: center;
+    overflow: hidden; /* scroll só dentro do content, não na página inteira */
 }
 
-/* Classe utilitária para esconder elementos (tabs, modal, etc.) */
+/* Classe utilitária: esconder elementos (abas, modal) */
 .hidden {
     display: none !important;
 }
@@ -57,7 +58,7 @@ body {
     display: flex;
     width: 100%;
     max-width: 1200px;
-    height: 100vh;
+    height: 100vh;      /* sempre ocupar a altura da janela */
     padding: 24px;
     gap: 24px;
 }
@@ -163,10 +164,10 @@ body {
     box-shadow: 0 18px 40px rgba(15, 23, 42, 0.35);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow-y: auto;  /* aqui é onde a página “rola” */
 }
 
-/* Mantendo compatibilidade com as classes existentes do HTML original */
+/* Títulos antigos (compatibilidade com HTML original) */
 .title1, .title2, .title3 {
     margin-bottom: 18px;
 }
@@ -207,8 +208,7 @@ body {
 
 /* ----------------- Área de busca + lista ----------------- */
 
-/* Barra de Busca
-   Quero que a busca tenha a mesma “cara” dos campos do formulário */
+/* Barra de Busca (mesma cara dos inputs do formulário) */
 .search-bar {
     width: 100%;
     padding: 10px;
@@ -234,7 +234,7 @@ body {
     color: var(--text-muted);
 }
 
-/* caso eu use alguma search-input genérica em outro lugar */
+/* Caso eu use search-input genérica em outro lugar */
 .search-input {
     flex: 1;
     padding: 10px 12px;
@@ -257,9 +257,8 @@ body {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    max-height: calc(100vh - 260px);
-    overflow-y: auto;
     padding-right: 4px;
+    /* sem max-height/overflow aqui: quem rola é o .content */
 }
 
 /* Card de item com ícone de categoria à esquerda */
@@ -281,44 +280,13 @@ body {
     box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
 }
 
-/* Botão "Este item pode ser meu" dentro do card */
-.claim-button {
-    margin-top: 6px;
-    padding: 6px 10px;
-    border-radius: 999px;
-    border: 1px solid var(--primary);
-    background: var(--white);
-    color: var(--primary);
-    font-size: 0.78rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition:
-        background 0.2s ease,
-        color 0.2s ease,
-        box-shadow 0.15s ease,
-        transform 0.1s ease;
-}
-
-.claim-button:hover {
-    background: var(--primary);
-    color: var(--white);
-    box-shadow: 0 6px 14px rgba(37, 99, 235, 0.3);
-    transform: translateY(-1px);
-}
-
-.claim-button:active {
-    transform: translateY(0);
-    box-shadow: none;
-}
-
-
 .item-main {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-/* bolinha com o ícone (emoji ou, no futuro, SVG) */
+/* bolinha com o ícone (emoji ou futuro SVG) */
 .item-icon-circle {
     width: 36px;
     height: 36px;
@@ -348,7 +316,7 @@ body {
     color: var(--text-muted);
 }
 
-/* meta informações à direita (data etc.) */
+/* meta informações à direita (data, botão) */
 .item-meta {
     display: flex;
     flex-direction: column;
@@ -363,6 +331,36 @@ body {
     background: var(--primary-soft);
     color: var(--primary);
     font-weight: 500;
+}
+
+/* Botão "Este item pode ser meu" */
+.claim-button {
+    margin-top: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--primary);
+    background: var(--white);
+    color: var(--primary);
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.15s ease,
+        transform 0.1s ease;
+}
+
+.claim-button:hover {
+    background: var(--primary);
+    color: var(--white);
+    box-shadow: 0 6px 14px rgba(37, 99, 235, 0.3);
+    transform: translateY(-1px);
+}
+
+.claim-button:active {
+    transform: translateY(0);
+    box-shadow: none;
 }
 
 /* Paginação */
@@ -425,7 +423,7 @@ body {
     color: var(--danger);
 }
 
-/* ----------------- Formulário de novo item ----------------- */
+/* ----------------- Formulário genérico (reutilizado no modal) ----------------- */
 
 .form-card {
     background: var(--bg-surface-light);
@@ -521,13 +519,13 @@ button[type="submit"]:active {
     border: 1px solid var(--border-subtle);
     box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
     max-width: 900px;
+    margin-bottom: 18px;
 }
 
-.about strong {
-    display: block;
+.about h3 {
+    font-size: 1.05rem;
     color: var(--primary);
-    font-size: 1.15rem;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
 .about p {
@@ -537,22 +535,31 @@ button[type="submit"]:active {
     margin-bottom: 8px;
 }
 
+.about-list {
+    margin: 6px 0 10px;
+    padding-left: 20px;
+    font-size: 0.92rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
 .note {
-    margin-top: 18px;
+    margin-top: 4px;
     background: var(--primary-soft);
     border-radius: 16px;
-    padding: 14px 16px;
+    padding: 14px 16px 16px;
     border: 1px dashed rgba(37, 99, 235, 0.4);
     max-width: 900px;
 }
 
-.note strong {
-    color: var(--primary);
+.note h3 {
     font-size: 1rem;
+    color: var(--primary);
+    margin-bottom: 6px;
 }
 
 .note ul {
-    margin-top: 8px;
+    margin-top: 4px;
     padding-left: 22px;
     color: var(--text-main);
     font-size: 0.92rem;
@@ -625,10 +632,13 @@ button[type="submit"]:active {
     font-size: 0.85rem;
 }
 
-
 /* ----------------- Responsividade básica ----------------- */
 
 @media (max-width: 960px) {
+    body {
+        overflow: auto; /* em telas pequenas, deixo a página rolar inteira */
+    }
+
     .container {
         flex-direction: column;
         height: auto;

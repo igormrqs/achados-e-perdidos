@@ -1,40 +1,60 @@
-from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse, HttpResponseBadRequest
-from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import ensure_csrf_cookie
+# ============================================================
+# Achados e Perdidos - UnDF
+# Arquivo: views.py
+#
+# Eu (estudante de CC) estou centralizando aqui as views simples
+# do app "itens". A ideia é manter tudo em função baseada (FBV),
+# com comentários explicando as decisões.
+# ============================================================
+
 from datetime import datetime
 import json
 
-from .models import Item
+from django.http import JsonResponse, HttpResponseBadRequest
+from django.shortcuts import render, get_object_or_404
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
+
+from .models import Item, Reivindicacao
 
 
 @ensure_csrf_cookie
 def home(request):
     """
-    Página principal do site de Achados e Perdidos.
-    Garante que o cookie de CSRF seja enviado.
+    View da página principal do site externo.
+
+    Renderiza o template itens/index.html.
+    O decorator ensure_csrf_cookie garante que o navegador receba
+    o cookie 'csrftoken', que posso usar no JavaScript quando
+    eu decidir ativar CSRF nas APIs.
     """
     return render(request, "itens/index.html")
 
 
+@csrf_exempt  # por enquanto deixo sem CSRF para simplificar o desenvolvimento
 @require_http_methods(["GET", "POST"])
 def item_list_create(request):
     """
-    GET  -> retorna itens EM ESTOQUE e APROVADOS em JSON
-    POST -> cria novo item vindo do site externo (começa como NÃO aprovado)
+    API simples para lista/criação de itens.
+
+    GET  -> retorna itens em estoque E aprovados, em JSON.
+    POST -> cria um novo item vindo do site externo (começa não aprovado).
+
+    Fluxo pensado:
+    - Usuário externo registra que encontrou um item.
+    - A equipe interna revisa e marca "aprovado=True".
+    - Só então esse item entra na listagem pública.
     """
     if request.method == "GET":
-        # Como estudante, aqui eu decidi filtrar:
-        # - apenas itens "Em estoque"
-        # - apenas itens aprovados pelo colaborador interno
         itens = (
             Item.objects
             .filter(status="Em estoque", aprovado=True)
             .order_by("-data_encontrado", "-data_criacao")
         )
 
-        data = [
-            {
+        data = []
+        for item in itens:
+            data.append({
                 "id": item.id,
                 "name": item.nome,
                 "location": item.local_encontrado or "",
@@ -42,12 +62,11 @@ def item_list_create(request):
                 "category": item.categoria or "",
                 "description": item.descricao or "",
                 "status": item.status,
-            }
-            for item in itens
-        ]
+            })
+
         return JsonResponse(data, safe=False)
 
-    # Se for POST (cadastro via site externo):
+    # Se chegou aqui, é POST (por causa do decorator).
     try:
         body = json.loads(request.body.decode("utf-8"))
     except json.JSONDecodeError:
@@ -55,7 +74,7 @@ def item_list_create(request):
 
     name = body.get("name")
     location = body.get("location")
-    date_str = body.get("date")  # 'YYYY-MM-DD'
+    date_str = body.get("date")  # esperado 'YYYY-MM-DD'
 
     if not (name and location and date_str):
         return HttpResponseBadRequest("Campos obrigatórios faltando")
@@ -65,17 +84,15 @@ def item_list_create(request):
     except ValueError:
         return HttpResponseBadRequest("Formato de data inválido")
 
-    # Itens vindos do site entram como "Em estoque" e "aprovado=False"
     item = Item.objects.create(
         nome=name,
         local_encontrado=location,
         data_encontrado=data_encontrado,
-        # deixa categoria/descricao para o colaborador ajustar depois
+        # status padrão já é "Em estoque"
+        # aprovado=False (revisão interna antes de publicar)
         aprovado=False,
     )
 
-    # Eu nem preciso mandar o item de volta para aparecer na lista,
-    # porque ele ainda não está aprovado. Vou só retornar algo simples.
     data = {
         "id": item.id,
         "nome": item.nome,
@@ -84,15 +101,62 @@ def item_list_create(request):
     return JsonResponse(data, status=201)
 
 
-
+@csrf_exempt
 @require_http_methods(["DELETE"])
 def item_mark_returned(request, item_id):
     """
-    Marca o item como 'Devolvido' em vez de apagar do banco.
-    Assim mantemos o histórico para o sistema interno.
+    Endpoint pensado para uso interno (colaborador):
+
+    marca um item como 'Devolvido' quando ele sai definitivamente
+    do Achados e Perdidos.
+
+    No site público a gente não chama isso ainda, mas ele já
+    está pronto para ser usado pelo painel interno no futuro.
     """
     item = get_object_or_404(Item, id=item_id)
     item.status = "Devolvido"
     item.save(update_fields=["status"])
 
     return JsonResponse({"status": "ok", "new_status": item.status})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def item_claim_create(request, item_id):
+    """
+    Cria uma 'Reivindicação' (Blind Claim) para um item específico.
+
+    Fluxo:
+    - usuário externo seleciona um item na lista;
+    - preenche nome, contato e detalhes que comprovam que o item é dele;
+    - a equipe interna vê essa reivindicação no admin e decide o que fazer.
+
+    Por enquanto essa view só recebe dados e registra no banco.
+    A parte visual (formulário no front) será feita em seguida.
+    """
+    item = get_object_or_404(Item, id=item_id)
+
+    try:
+        body = json.loads(request.body.decode("utf-8"))
+    except json.JSONDecodeError:
+        return HttpResponseBadRequest("JSON inválido")
+
+    nome = body.get("nome")
+    contato = body.get("contato")
+    detalhes = body.get("detalhes")
+
+    if not (nome and detalhes):
+        return HttpResponseBadRequest("Campos obrigatórios faltando")
+
+    reivindicacao = Reivindicacao.objects.create(
+        item=item,
+        nome_requerente=nome,
+        contato=contato or "",
+        detalhes=detalhes,
+    )
+
+    data = {
+        "id": reivindicacao.id,
+        "mensagem": "Reivindicação registrada e enviada para análise da equipe interna.",
+    }
+    return JsonResponse(data, status=201)

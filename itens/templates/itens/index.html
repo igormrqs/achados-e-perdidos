@@ -104,7 +104,48 @@
             </section>
 
          </main>
-    </div>
+            <!-- Modal de Blind Claim (Reivindicação de item) -->
+        <div id="claimModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Este item pode ser meu</h3>
+                    <button type="button" id="claimCloseButton" class="modal-close">&times;</button>
+                </div>
+
+                <div class="modal-body">
+                    <p>Você está enviando uma solicitação para o item:</p>
+                    <p><strong id="claimItemInfo">Nome do item - Local</strong></p>
+                    <p style="margin-top: 8px;">
+                        Descreva detalhes que só o verdadeiro dono saberia
+                        (como características internas, adesivos, capa, conteúdo, etc.).
+                    </p>
+                </div>
+
+                <form id="claimForm">
+                    <div class="form-group">
+                        <label for="claimNome">Seu nome completo:</label>
+                        <input type="text" id="claimNome" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="claimContato">Contato (e-mail, telefone ou matrícula):</label>
+                        <input type="text" id="claimContato">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="claimDetalhes">Detalhes que comprovam que o item é seu:</label>
+                        <textarea id="claimDetalhes" rows="3" required></textarea>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit">Enviar Reivindicação</button>
+                    </div>
+
+                    <p id="claimMessage" class="claim-message"></p>
+                </form>
+            </div>
+        </div>
+
 
     <script src="{% static 'itens/script.js' %}"></script>
 </body>

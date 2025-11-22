@@ -3,5 +3,5 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('itens.urls')),  # rota raiz aponta pro app itens
+    path('', include('itens.urls')),  # manda as rotas raiz pro app "itens"
 ]

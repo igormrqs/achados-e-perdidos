@@ -47,6 +47,11 @@ body {
     justify-content: center;
 }
 
+/* Classe utilitária para esconder elementos (tabs, modal, etc.) */
+.hidden {
+    display: none !important;
+}
+
 /* Container principal: sidebar + conteúdo */
 .container {
     display: flex;
@@ -275,6 +280,37 @@ body {
     border-color: var(--primary-soft);
     box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
 }
+
+/* Botão "Este item pode ser meu" dentro do card */
+.claim-button {
+    margin-top: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--primary);
+    background: var(--white);
+    color: var(--primary);
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.15s ease,
+        transform 0.1s ease;
+}
+
+.claim-button:hover {
+    background: var(--primary);
+    color: var(--white);
+    box-shadow: 0 6px 14px rgba(37, 99, 235, 0.3);
+    transform: translateY(-1px);
+}
+
+.claim-button:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
 
 .item-main {
     display: flex;
@@ -522,6 +558,73 @@ button[type="submit"]:active {
     font-size: 0.92rem;
     line-height: 1.6;
 }
+
+/* ----------------- Modal de Blind Claim ----------------- */
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+}
+
+.modal-content {
+    background: var(--bg-surface-light);
+    border-radius: 20px;
+    padding: 20px 22px 18px;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.4);
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.modal-header h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.modal-close {
+    border: none;
+    background: transparent;
+    font-size: 1.4rem;
+    cursor: pointer;
+    line-height: 1;
+    color: var(--text-muted);
+}
+
+.modal-close:hover {
+    color: var(--text-main);
+}
+
+.modal-body {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+.modal-body strong {
+    color: var(--text-main);
+}
+
+.modal-footer {
+    margin-top: 10px;
+}
+
+.claim-message {
+    margin-top: 8px;
+    font-size: 0.85rem;
+}
+
 
 /* ----------------- Responsividade básica ----------------- */
 

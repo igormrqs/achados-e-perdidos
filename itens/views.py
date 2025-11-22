@@ -18,6 +18,9 @@ from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from .models import Item, Reivindicacao
 
 
+# ----------------- Páginas HTML -----------------
+
+
 @ensure_csrf_cookie
 def home(request):
     """
@@ -31,6 +34,20 @@ def home(request):
     return render(request, "itens/index.html")
 
 
+@ensure_csrf_cookie
+def internal_dashboard(request):
+    """
+    Painel simples para uso interno (colaborador).
+
+    Nesta página vou consumir APIs internas para listar e atualizar
+    as reivindicações de itens.
+    """
+    return render(request, "itens/internal_dashboard.html")
+
+
+# ----------------- API pública de itens -----------------
+
+
 @csrf_exempt  # por enquanto deixo sem CSRF para simplificar o desenvolvimento
 @require_http_methods(["GET", "POST"])
 def item_list_create(request):
@@ -38,12 +55,12 @@ def item_list_create(request):
     API simples para lista/criação de itens.
 
     GET  -> retorna itens em estoque E aprovados, em JSON.
-    POST -> cria um novo item vindo do site externo (começa não aprovado).
+    POST -> cria um novo item vindo de uma futura interface interna
+            (hoje não usamos pelo site público).
 
-    Fluxo pensado:
-    - Usuário externo registra que encontrou um item.
-    - A equipe interna revisa e marca "aprovado=True".
-    - Só então esse item entra na listagem pública.
+    Fluxo atual:
+    - Itens são cadastrados por servidores internos (via admin ou painel);
+    - Apenas itens com aprovado=True aparecem na listagem pública.
     """
     if request.method == "GET":
         itens = (
@@ -105,19 +122,19 @@ def item_list_create(request):
 @require_http_methods(["DELETE"])
 def item_mark_returned(request, item_id):
     """
-    Endpoint pensado para uso interno (colaborador):
+    Marca um item como 'Devolvido' (pensado para uso interno).
 
-    marca um item como 'Devolvido' quando ele sai definitivamente
-    do Achados e Perdidos.
-
-    No site público a gente não chama isso ainda, mas ele já
-    está pronto para ser usado pelo painel interno no futuro.
+    No site público ainda não chamamos isso, mas está pronto
+    para ser usado pelo painel interno no futuro.
     """
     item = get_object_or_404(Item, id=item_id)
     item.status = "Devolvido"
     item.save(update_fields=["status"])
 
     return JsonResponse({"status": "ok", "new_status": item.status})
+
+
+# ----------------- API pública de Blind Claim -----------------
 
 
 @csrf_exempt
@@ -129,10 +146,7 @@ def item_claim_create(request, item_id):
     Fluxo:
     - usuário externo seleciona um item na lista;
     - preenche nome, contato e detalhes que comprovam que o item é dele;
-    - a equipe interna vê essa reivindicação no admin e decide o que fazer.
-
-    Por enquanto essa view só recebe dados e registra no banco.
-    A parte visual (formulário no front) será feita em seguida.
+    - a equipe interna vê essa reivindicação no admin ou no painel interno.
     """
     item = get_object_or_404(Item, id=item_id)
 
@@ -160,3 +174,80 @@ def item_claim_create(request, item_id):
         "mensagem": "Reivindicação registrada e enviada para análise da equipe interna.",
     }
     return JsonResponse(data, status=201)
+
+
+# ----------------- API interna (painel de reivindicações) -----------------
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def internal_claims_list(request):
+    """
+    Retorna todas as reivindicações, com alguns dados do item associado.
+
+    Essa API é usada pelo painel interno para o colaborador
+    visualizar as solicitações feitas pelo site público.
+    """
+    reivindicacoes = (
+        Reivindicacao.objects
+        .select_related("item")
+        .order_by("-data_envio")
+    )
+
+    data = []
+    for rev in reivindicacoes:
+        data.append({
+            "id": rev.id,
+            "status": rev.status,
+            "data_envio": rev.data_envio.isoformat(),
+            "nome_requerente": rev.nome_requerente,
+            "contato": rev.contato or "",
+            "detalhes": rev.detalhes,
+            "item": {
+                "id": rev.item.id,
+                "nome": rev.item.nome,
+                "local_encontrado": rev.item.local_encontrado or "",
+                "data_encontrado": rev.item.data_encontrado.isoformat(),
+                "status": rev.item.status,
+                "aprovado": rev.item.aprovado,
+            },
+        })
+
+    return JsonResponse(data, safe=False)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def internal_claim_update_status(request, claim_id):
+    """
+    Atualiza o status de uma reivindicação via painel interno.
+
+    Se a reivindicação for marcada como 'Aprovada', atualizo também
+    o status do item para 'Reivindicado'.
+    """
+    try:
+        body = json.loads(request.body.decode("utf-8"))
+    except json.JSONDecodeError:
+        return HttpResponseBadRequest("JSON inválido")
+
+    new_status = body.get("status")
+
+    valid_status = {choice[0] for choice in Reivindicacao.STATUS_CHOICES}
+    if new_status not in valid_status:
+        return HttpResponseBadRequest("Status inválido")
+
+    rev = get_object_or_404(Reivindicacao, id=claim_id)
+    rev.status = new_status
+    rev.save(update_fields=["status"])
+
+    # se aprovado, atualizo item
+    item = rev.item
+    if new_status == "Aprovada":
+        item.status = "Reivindicado"
+        item.save(update_fields=["status"])
+
+    return JsonResponse({
+        "id": rev.id,
+        "status": rev.status,
+        "item_status": item.status,
+    })

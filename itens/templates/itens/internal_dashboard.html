@@ -1,0 +1,55 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Interno - Achados e Perdidos UnDF</title>
+    <link rel="stylesheet" href="{% static 'itens/style.css' %}">
+</head>
+<body>
+
+    <div class="container">
+        <!-- Sidebar lateral -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">
+                    <img src="{% static 'itens/logo.pequena.png' %}"
+                         alt="Logo Achados e Perdidos - UnDF">
+                </div>
+                <h1>Painel Interno</h1>
+            </div>
+
+            <nav class="menu">
+                <span class="menu-item active">Reivindicações</span>
+            </nav>
+
+            <p class="footer-sidebar">Uso interno - UnDF</p>
+        </aside>
+
+        <!-- Conteúdo principal -->
+        <main class="content">
+            <section class="tab-content">
+                <div class="tab-header">
+                    <h2>Reivindicações de Itens</h2>
+                    <p>Visualize as solicitações enviadas pelo site e atualize o status de cada uma.</p>
+                </div>
+
+                <div class="search-container">
+                    <label for="searchClaims">Filtrar por nome, item ou contato:</label>
+                    <input
+                        type="text"
+                        id="searchClaims"
+                        class="search-bar"
+                        placeholder="Ex.: carteira, João, matrícula, e-mail..."
+                    >
+                </div>
+
+                <div id="claimsList" class="items-list"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="{% static 'itens/internal.js' %}"></script>
+</body>
+</html>

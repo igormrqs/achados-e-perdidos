@@ -566,6 +566,74 @@ button[type="submit"]:active {
     line-height: 1.6;
 }
 
+/* ----------------- Cartões do painel interno ----------------- */
+
+.claim-card {
+    align-items: flex-start;
+}
+
+.claim-main h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.claim-main p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+}
+
+.claim-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    font-size: 0.85rem;
+}
+
+.claim-actions select {
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border-subtle);
+    font-size: 0.85rem;
+    background: var(--white);
+}
+
+.claim-save-button {
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: none;
+    background: var(--primary);
+    color: var(--white);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.2s ease, box-shadow 0.15s ease, transform 0.1s ease;
+}
+
+.claim-save-button:hover {
+    background: var(--primary-hover);
+    box-shadow: 0 6px 14px rgba(37, 99, 235, 0.3);
+    transform: translateY(-1px);
+}
+
+.claim-save-button:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.claim-status-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* pequeno destaque quando o update dá certo */
+.claim-card.updated-ok {
+    border-color: #4ade80;
+    box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.6);
+}
+
+
 /* ----------------- Modal de Blind Claim ----------------- */
 
 .modal {

@@ -17,5 +17,13 @@ class Item(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Em estoque')
     data_criacao = models.DateTimeField(auto_now_add=True)
 
+        # --- novo campo de moderação ---
+    # como estudante, estou adicionando esse booleano para controlar
+    # se o item já foi revisado e liberado para aparecer no site público.
+    # Itens criados pelo formulário começam como False (pendentes).
+    aprovado = models.BooleanField(default=False)
+
     def __str__(self):
         return self.nome
+    
+    

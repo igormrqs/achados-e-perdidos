@@ -1,306 +1,583 @@
-/* Variáveis para fácil ajuste de cores */
+/* ============================================================
+   Achados e Perdidos - UnDF
+   Arquivo: style.css
+   Contexto: estou tratando esse CSS como parte do meu portfólio
+   de estudante de Ciência da Computação, então deixo comentários
+   explicando algumas decisões de design para eu lembrar depois.
+   A ideia é ter um visual moderno, leve e consistente.
+   ============================================================ */
+
+/* Paleta base (mantive tons de azul do protótipo, mas mais suaves) */
 :root {
-    --dark-blue: #1d245b;
-    --medium-blue: #00367e;
-    --light-blue: #8fcdef;
-    --highlight-blue: #bce8ff;
-    --text-color: #333;
+    --bg-body: #0f172a;              /* azul bem escuro para o fundo geral */
+    --bg-surface: #0b1120;           /* sidebar / cartões escuros */
+    --bg-surface-light: #f8fafc;     /* cartões claros na área principal */
+
+    --primary: #1d4ed8;              /* azul principal */
+    --primary-soft: #dbeafe;         /* azul bem claro para destaques */
+    --primary-hover: #2563eb;
+
+    --accent: #38bdf8;               /* ciano para detalhes */
+    --danger: #ef4444;
+    --danger-soft: #fee2e2;
+
+    --border-subtle: #e2e8f0;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
     --white: #ffffff;
-    --grey-bg: #f4f4f4;
-    --danger-red: #c0392b;
-    --danger-red-hover: #e74c3c;
 }
 
+/* Reset básico + tipografia global */
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: Arial, sans-serif;
+}
+
+html, body {
+    height: 100%;
 }
 
 body {
-    background-color: var(--grey-bg);
-    color: var(--text-color);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: radial-gradient(circle at top left, #1d4ed8 0, #0f172a 40%, #020617 100%);
+    color: var(--text-main);
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
 }
 
+/* Container principal: sidebar + conteúdo */
 .container {
     display: flex;
-    min-height: 100vh;
+    width: 100%;
+    max-width: 1200px;
+    height: 100vh;
+    padding: 24px;
+    gap: 24px;
 }
 
-/* --- Menu Lateral (Sidebar) --- */
+/* ----------------- Sidebar ----------------- */
+
 .sidebar {
-    width: 400px;
-    background-color: var(--dark-blue);
+    width: 290px;
+    background: linear-gradient(180deg, #0b1120, #020617);
+    border-radius: 24px;
+    padding: 24px 20px;
     color: var(--white);
-    padding: 20px 0;
     display: flex;
     flex-direction: column;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.7);
 }
-.logo-icon{
-    padding-left: 95px;
 
+.logo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 32px;
+}
+
+.logo-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    background: rgba(15, 23, 42, 0.8);
+    border-radius: 18px;
+}
+
+.logo img {
+    max-width: 100%;
+    height: auto;
 }
 
 .logo h1 {
-    font-size: 1.5em;
-    font-weight: bold;
-    padding-left: 40px;
-    padding-bottom: 40px;
+    font-size: 1.1rem;
+    line-height: 1.4;
+    font-weight: 600;
+    color: var(--white);
+}
+
+/* Menu lateral */
+
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: auto;
 }
 
 .menu-item {
-    display: block;
-    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    color: var(--text-muted-light, #e5e7eb);
     text-decoration: none;
-    color: var(--white);
-    transition: background-color 0.2s;
+    transition: background 0.2s ease, transform 0.12s ease, color 0.2s ease;
+}
+
+.menu-item::before {
+    content: "•";
+    font-size: 1.1rem;
+    color: transparent;
+    transition: color 0.2s ease;
 }
 
 .menu-item:hover {
-    background-color: var(--medium-blue);
+    background: rgba(148, 163, 184, 0.18);
+    transform: translateX(2px);
+    color: var(--white);
 }
 
 .menu-item.active {
-    background-color: var(--highlight-blue);
-    color: var(--dark-blue);
-    font-weight: bold;
+    background: rgba(37, 99, 235, 0.25);
+    color: var(--white);
+}
+
+.menu-item.active::before {
+    color: var(--accent);
 }
 
 .footer-sidebar {
-    margin-top: auto; 
-    padding: 20px;
-    font-size: 0.75em;
-    opacity: 0.7;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 24px;
+    font-size: 0.75rem;
+    color: #9ca3af;
+    text-align: left;
 }
 
-.request{
-  padding-bottom: 20px;
-   font-size: xx-large;
-}
+/* ----------------- Conteúdo principal ----------------- */
 
-/* --- Conteúdo Principal --- */
 .content {
-    flex-grow: 1;
-    padding: 30px;
+    flex: 1;
+    background: rgba(248, 250, 252, 0.98);
+    border-radius: 24px;
+    padding: 24px 26px;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.35);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
+/* Mantendo compatibilidade com as classes existentes do HTML original */
+.title1, .title2, .title3 {
+    margin-bottom: 18px;
+}
+
+.title1 h2,
+.title2 h2,
+.title3 h2 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+/* Cabeçalho genérico das seções */
+.tab-header {
+    margin-bottom: 18px;
+}
+
+.tab-header h2 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.tab-header p {
+    margin-top: 4px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* Controle de abas */
 .tab-content {
-    max-width: 800px; 
+    display: block;
 }
 
 .tab-content.hidden {
     display: none;
 }
 
-/* --- Barra de Busca --- */
+/* ----------------- Área de busca + lista ----------------- */
+
+/* Barra de Busca
+   Quero que a busca tenha a mesma “cara” dos campos do formulário */
 .search-bar {
-    padding: 10px 15px;
-    width: 250px;
-    margin-bottom: 25px;
-    border: 1px solid var(--light-blue);
-    border-radius: 5px;
-    font-size: 1em;
-    background-color: #f0f0f0;
-    cursor: pointer;
-}
-
-.search-bar:focus {
-    outline: none;
-    border-color: var(--highlight-blue);
-    box-shadow: 0 0 5px var(--highlight-blue);
-}
-
-/* --- Estilo da Lista de Itens (Baseado no Anexo) --- */
-.item-card {
-    background-color: var(--highlight-blue);
-    color: var(--dark-blue);
-    padding: 15px 20px;
-    margin-bottom: 10px;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;      /* mesmo border dos inputs do form */
     border-radius: 4px;
+    font-size: 1em;
+    background-color: #ffffff;
+    box-sizing: border-box;
+    margin-bottom: 25px;
+}
+
+.search-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.search-container label {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+/* caso eu use alguma search-input genérica em outro lugar */
+.search-input {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border-subtle);
+    font-size: 0.9rem;
+    outline: none;
+    background: var(--white);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.3);
+}
+
+/* ----------------- Lista de itens ----------------- */
+
+.items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: calc(100vh - 260px);
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+/* Card de item com ícone de categoria à esquerda */
+.item-card {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    font-size: 1.1em;
-    width: 1000px;
+    padding: 12px 14px;
+    background: var(--bg-surface-light);
+    border-radius: 16px;
+    border: 1px solid var(--border-subtle);
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+    transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
 }
 
-.title2 h2{
-    padding-bottom: 40px;
-    font-size:xx-large;
-    font-weight: bold;
-}
-.title1 h2{
-    padding-bottom: 40px;
-    font-size:xx-large;
-    font-weight: bold;
+.item-card:hover {
+    transform: translateY(-1px);
+    border-color: var(--primary-soft);
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
 }
 
-.title3 h2{
-    padding-bottom: 50px;
-    font-size:xx-large;
-    font-weight: bold;
-}
-
-.item-card h3 {
-    margin: 0 0 5px 0;
-    font-size: 1.2em;
-}
-
-.about p{
-    font-size: 1.0em;
-    font-weight: bold; 
-
-}
-
-.item-card p {
-    font-size: 0.9em;
-    opacity: 0.8;
-}
-.item-right-section {
+.item-main {
     display: flex;
     align-items: center;
-    gap: 20px; 
+    gap: 10px;
+}
+
+/* bolinha com o ícone (emoji ou, no futuro, SVG) */
+.item-icon-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    background: var(--primary-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.item-icon-emoji {
+    font-size: 1.2rem;
+}
+
+/* bloco de texto (nome + local) */
+.item-text-block h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--text-main);
+}
+
+/* tanto a classe geral quanto a específica dentro do bloco */
+.item-text-block .item-location,
+.item-location {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* meta informações à direita (data etc.) */
+.item-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    font-size: 0.8rem;
 }
 
 .item-date {
-    font-weight: bold;
-    white-space: nowrap; 
-}
-.delete-button {
-    background-color: var(--danger-red);
-    color: var(--white);
-    border: none;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 1.2em;
-    font-weight: bold;
-    line-height: 28px;
-    text-align: center;
-    transition: background-color 0.2s;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-weight: 500;
 }
 
-.delete-button:hover {
-    background-color: var(--danger-red-hover);
-}
+/* Paginação */
 
-
-/* --- Paginação --- */
 .pagination {
     display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 25px;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-top: 14px;
 }
 
 .page-number {
-    background-color: #ccc;
-    color: var(--white);
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border-subtle);
+    background: var(--white);
+    color: var(--text-main);
+    font-size: 0.85rem;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
 }
 
 .page-number:hover {
-    background-color: var(--medium-blue);
+    background: var(--primary-soft);
+    border-color: var(--primary);
+    transform: translateY(-1px);
 }
 
 .page-number.active {
-    background-color: var(--highlight-blue);
-    color: var(--dark-blue);
-    font-weight: bold;
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--white);
 }
 
-/* --- Formulário Adicionar Item --- */
-.add-form {
-    background-color: var(--white);
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    border: #00367e;
+/* ----------------- Mensagens de estado / info ----------------- */
+
+.info-text {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    padding: 16px 12px;
+    text-align: left;
 }
 
+#message {
+    margin-top: 10px;
+    font-size: 0.9rem;
+}
+
+.message-info {
+    color: var(--text-muted);
+}
+
+.message-success {
+    color: #16a34a;
+}
+
+.message-error {
+    color: var(--danger);
+}
+
+/* ----------------- Formulário de novo item ----------------- */
+
+.form-card {
+    background: var(--bg-surface-light);
+    border-radius: 16px;
+    padding: 18px 18px 16px;
+    border: 1px solid var(--border-subtle);
+    box-shadow: 0 4px 18px rgba(148, 163, 184, 0.25);
+}
+
+.form-card h2 {
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+    color: var(--text-main);
+}
+
+.form-card p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px 14px;
+    margin-bottom: 16px;
+}
 
 .form-group {
-    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 .form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text-main);
 }
 
-.form-group input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 1em;
+.form-group input,
+.form-group textarea {
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border-subtle);
+    font-size: 0.9rem;
+    outline: none;
+    resize: vertical;
+    min-height: 40px;
+    background: var(--white);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.submit-button {
-    background-color: var(--dark-blue);
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.25);
+}
+
+button[type="submit"] {
+    margin-top: 4px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: var(--primary);
     color: var(--white);
-    padding: 10px 15px;
     border: none;
-    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: 500;
     cursor: pointer;
-    font-size: 1em;
-    transition: background-color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
 }
 
-.submit-button:hover {
-    background-color: var(--medium-blue);
+button[type="submit"]:hover {
+    background: var(--primary-hover);
+    box-shadow: 0 10px 22px rgba(37, 99, 235, 0.25);
+    transform: translateY(-1px);
 }
 
-/* Bloco de citação (para a aba Sobre) */
+button[type="submit"]:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* ----------------- Seção "Sobre" ----------------- */
+
+.about {
+    background: var(--bg-surface-light);
+    border-radius: 18px;
+    padding: 18px 18px 20px;
+    border: 1px solid var(--border-subtle);
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+    max-width: 900px;
+}
+
+.about strong {
+    display: block;
+    color: var(--primary);
+    font-size: 1.15rem;
+    margin-bottom: 8px;
+}
+
+.about p {
+    font-size: 0.92rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+    margin-bottom: 8px;
+}
+
 .note {
-    background-color: #e6f7ff;
-    border-left: 5px solid var(--highlight-blue);
-    padding: 15px;
-    margin: 20px 0;
-    color: var(--text-color);
-    width: 1000px;
+    margin-top: 18px;
+    background: var(--primary-soft);
+    border-radius: 16px;
+    padding: 14px 16px;
+    border: 1px dashed rgba(37, 99, 235, 0.4);
+    max-width: 900px;
 }
-
 
 .note strong {
-    color: var(--dark-blue);
-    padding-bottom: 30px;
+    color: var(--primary);
+    font-size: 1rem;
 }
 
 .note ul {
-    font-weight: bold;
-    margin-top: 10px;
-    padding-left: 20px;
+    margin-top: 8px;
+    padding-left: 22px;
+    color: var(--text-main);
+    font-size: 0.92rem;
+    line-height: 1.6;
 }
 
-.block {
-    background-color: #e6f7ff;
-    border-left: 5px solid var(--highlight-blue);
-    padding: 15px;
-    margin: 20px 0;
-    color: var(--text-color);
-    width: 1000px;
+/* ----------------- Responsividade básica ----------------- */
+
+@media (max-width: 960px) {
+    .container {
+        flex-direction: column;
+        height: auto;
+        padding: 16px;
+    }
+
+    .sidebar {
+        width: 100%;
+        flex-direction: row;
+        align-items: center;
+        padding: 16px;
+        gap: 16px;
+    }
+
+    .logo {
+        flex-direction: row;
+        align-items: center;
+        margin-bottom: 0;
+    }
+
+    .menu {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .content {
+        height: auto;
+        margin-top: 10px;
+    }
+
+    .items-list {
+        max-height: none;
+    }
 }
 
-.about strong{
-    color: var(--dark-blue);
-    font-size: xx-large;
-    padding-top: 50px;
-}
+@media (max-width: 600px) {
+    .sidebar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 
-.pad {
-    padding-top: 30px;
+    .menu {
+        width: 100%;
+    }
+
+    .search-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .pagination {
+        justify-content: center;
+    }
 }

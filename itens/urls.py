@@ -24,4 +24,10 @@ urlpatterns = [
         views.internal_claim_update_status,
         name='internal_claim_update_status'
     ),
+        path(
+        'api/interno/itens/<int:item_id>/back_to_stock/',
+        views.internal_item_back_to_stock,
+        name='internal_item_back_to_stock'
+    ),
+
 ]

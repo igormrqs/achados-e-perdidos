@@ -251,3 +251,24 @@ def internal_claim_update_status(request, claim_id):
         "status": rev.status,
         "item_status": item.status,
     })
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def internal_item_back_to_stock(request, item_id):
+    """
+    Uso interno: volta um item para 'Em estoque' em caso de erro.
+
+    Exemplo de uso:
+    - colaborador aprovou uma reivindicação errada;
+    - depois ajusta o status da reivindicação e, se necessário,
+      volta o item para 'Em estoque' manualmente.
+    """
+    item = get_object_or_404(Item, id=item_id)
+    item.status = "Em estoque"
+    item.save(update_fields=["status"])
+
+    return JsonResponse({
+        "id": item.id,
+        "status": item.status,
+    })

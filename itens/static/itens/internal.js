@@ -7,7 +7,7 @@
 // - carregar todas as reivindicações via API interna;
 // - permitir filtrar por texto (nome, item, contato);
 // - atualizar o status (Pendente / Aprovada / Recusada);
-// - refletir essa atualização também no status do item.
+// - voltar item para 'Em estoque' em caso de erro interno.
 // ============================================================
 
 let allClaims = [];
@@ -41,12 +41,13 @@ function showInfoMessage(targetElement, text) {
 
 function createClaimCard(claim) {
     const statusOptions = ['Pendente', 'Aprovada', 'Recusada'];
-
     const optionsHtml = statusOptions.map(status => `
         <option value="${status}" ${status === claim.status ? 'selected' : ''}>
             ${status}
         </option>
     `).join('');
+
+    const canResetItem = claim.item.status !== 'Em estoque';
 
     return `
         <div class="item-card claim-card" data-claim-id="${claim.id}">
@@ -84,12 +85,24 @@ function createClaimCard(claim) {
                     type="button"
                     class="claim-save-button"
                 >
-                    Salvar
+                    Salvar status
                 </button>
 
                 <p class="claim-status-label">
                     Item: <span>${claim.item.status}</span>
                 </p>
+
+                <button
+                    type="button"
+                    class="item-reset-button"
+                    data-item-id="${claim.item.id}"
+                    ${canResetItem ? '' : 'disabled'}
+                >
+                    Voltar item para estoque
+                </button>
+                <small class="claim-hint">
+                    Use apenas em caso de correção de erro.
+                </small>
             </div>
         </div>
     `;
@@ -161,7 +174,7 @@ async function loadClaims() {
     }
 }
 
-// ----------------- Atualizar status -----------------
+// ----------------- Atualizar status da reivindicação -----------------
 
 async function updateClaimStatus(claimId, newStatus, cardElement) {
     try {
@@ -200,7 +213,6 @@ async function updateClaimStatus(claimId, newStatus, cardElement) {
             return claim;
         });
 
-        // feedback visual simples
         cardElement.classList.add('updated-ok');
         setTimeout(() => {
             cardElement.classList.remove('updated-ok');
@@ -212,21 +224,95 @@ async function updateClaimStatus(claimId, newStatus, cardElement) {
     }
 }
 
-// Delegação de eventos para os botões "Salvar"
+// ----------------- Voltar item para estoque -----------------
+
+async function resetItemToStock(itemId, cardElement) {
+    const confirmReset = window.confirm(
+        'Tem certeza que deseja voltar este item para "Em estoque"? ' +
+        'Use essa opção apenas em caso de correção de erro interno.'
+    );
+    if (!confirmReset) return;
+
+    try {
+        const response = await fetch(`/api/interno/itens/${itemId}/back_to_stock/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Erro ao voltar item para estoque');
+        }
+
+        const data = await response.json();
+
+        // Atualizo label do item no card
+        const label = cardElement.querySelector('.claim-status-label span');
+        if (label && data.status) {
+            label.textContent = data.status;
+        }
+
+        // Desabilito o botão de reset deste card
+        const resetButton = cardElement.querySelector('.item-reset-button');
+        if (resetButton) {
+            resetButton.disabled = true;
+        }
+
+        // Atualizo todos os claims que usam esse item na lista em memória
+        allClaims = allClaims.map(claim => {
+            if (claim.item.id === itemId) {
+                return {
+                    ...claim,
+                    item: {
+                        ...claim.item,
+                        status: data.status,
+                    },
+                };
+            }
+            return claim;
+        });
+
+        cardElement.classList.add('updated-ok');
+        setTimeout(() => {
+            cardElement.classList.remove('updated-ok');
+        }, 800);
+
+    } catch (error) {
+        console.error(error);
+        alert('Não foi possível voltar o item para estoque. Tente novamente.');
+    }
+}
+
+// ----------------- Delegação de eventos -----------------
+
 if (claimsListEl) {
     claimsListEl.addEventListener('click', async (event) => {
-        const button = event.target.closest('.claim-save-button');
-        if (!button) return;
-
-        const card = button.closest('.claim-card');
+        const card = event.target.closest('.claim-card');
         if (!card) return;
 
-        const claimId = Number(card.dataset.claimId);
-        const select = card.querySelector('.claim-status-select');
-        if (!claimId || !select) return;
+        // 1) Salvar status da reivindicação
+        const saveButton = event.target.closest('.claim-save-button');
+        if (saveButton) {
+            const select = card.querySelector('.claim-status-select');
+            if (!select) return;
 
-        const newStatus = select.value;
-        await updateClaimStatus(claimId, newStatus, card);
+            const claimId = Number(select.dataset.claimId);
+            const newStatus = select.value;
+
+            if (!claimId) return;
+            await updateClaimStatus(claimId, newStatus, card);
+            return;
+        }
+
+        // 2) Voltar item para estoque
+        const resetButton = event.target.closest('.item-reset-button');
+        if (resetButton) {
+            const itemId = Number(resetButton.dataset.itemId);
+            if (!itemId || resetButton.disabled) return;
+
+            await resetItemToStock(itemId, card);
+        }
     });
 }
 

@@ -600,6 +600,7 @@ button[type="submit"]:active {
     background: var(--white);
 }
 
+/* botão de salvar status da reivindicação */
 .claim-save-button {
     padding: 6px 10px;
     border-radius: 999px;
@@ -622,8 +623,41 @@ button[type="submit"]:active {
     box-shadow: none;
 }
 
+/* botão de voltar item para estoque (uso em correção de erro) */
+.item-reset-button {
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid #f97316;
+    background: #fff7ed;
+    color: #c2410c;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.2s ease, box-shadow 0.15s ease, transform 0.1s ease, opacity 0.2s ease;
+}
+
+.item-reset-button:hover:not(:disabled) {
+    background: #fed7aa;
+    box-shadow: 0 6px 14px rgba(248, 153, 80, 0.35);
+    transform: translateY(-1px);
+}
+
+.item-reset-button:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.item-reset-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .claim-status-label {
     font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.claim-hint {
+    font-size: 0.75rem;
     color: var(--text-muted);
 }
 

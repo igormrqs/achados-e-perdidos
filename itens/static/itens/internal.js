@@ -2,17 +2,31 @@
 // Achados e Perdidos - UnDF
 // Arquivo: internal.js
 //
-// Painel interno de reivindicações:
-// - lista todas as reivindicações;
-// - permite filtrar por nome, item, contato, vínculo ou identificação;
-// - permite atualizar status da reivindicação;
-// - permite voltar item para 'Em estoque' em caso de erro.
+// Painel interno:
+// - Abas: Reivindicações e Itens;
+// - Lista reivindicações (com vínculo, identificação, contato);
+// - Atualiza status de reivindicação;
+// - Volta item para estoque (correção de erro);
+// - Lista itens (estoque, reivindicados, devolvidos);
+// - Marca item como devolvido.
 // ============================================================
 
+// Estado em memória
 let allClaims = [];
+let allItems = [];
 
+// Elementos gerais
 const claimsListEl = document.getElementById('claimsList');
 const searchClaimsInput = document.getElementById('searchClaims');
+
+const itemsListEl = document.getElementById('itemsList');
+const searchItemsInput = document.getElementById('searchItems');
+const filterStatusSelect = document.getElementById('filterStatus');
+const filterAprovadoSelect = document.getElementById('filterAprovado');
+
+// Abas do painel interno
+const internalTabs = document.querySelectorAll('.menu .menu-item[data-tab]');
+const internalTabContents = document.querySelectorAll('.content .tab-content');
 
 // ----------------- Helpers -----------------
 
@@ -36,7 +50,28 @@ function showInfoMessage(targetElement, text) {
     targetElement.innerHTML = `<p class="info-text">${text}</p>`;
 }
 
-// ----------------- Renderização -----------------
+// ----------------- Tabs internas -----------------
+
+if (internalTabs.length) {
+    internalTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const target = tab.dataset.tab;
+
+            internalTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            internalTabContents.forEach(section => {
+                if (section.id === target) {
+                    section.classList.remove('hidden');
+                } else {
+                    section.classList.add('hidden');
+                }
+            });
+        });
+    });
+}
+
+// ----------------- Reivindicações -----------------
 
 function createClaimCard(claim) {
     const statusOptions = ['Pendente', 'Aprovada', 'Recusada'];
@@ -130,10 +165,8 @@ function renderClaims(claims) {
     });
 }
 
-// ----------------- Filtro de busca -----------------
-
 function getFilteredClaims() {
-    const term = (searchClaimsInput.value || '').toLowerCase().trim();
+    const term = (searchClaimsInput?.value || '').toLowerCase().trim();
     if (!term) return [...allClaims];
 
     return allClaims.filter(claim => {
@@ -162,9 +195,127 @@ if (searchClaimsInput) {
     });
 }
 
-// ----------------- Carregamento da API -----------------
+// ----------------- Lista de Itens -----------------
+
+function createItemCard(item) {
+    const aprovacaoTexto = item.aprovado
+        ? 'Aprovado para aparecer no site'
+        : 'Pendente de aprovação';
+
+    const canBackToStock = item.status !== 'Em estoque';
+    const canMarkReturned = item.status !== 'Devolvido';
+
+    return `
+        <div class="item-card claim-card internal-item-card" data-item-id="${item.id}">
+            <div class="claim-main">
+                <h3>${escapeHtml(item.nome)}</h3>
+                <p class="item-location">
+                    ${escapeHtml(item.local_encontrado)}
+                    • Encontrado em ${formatDate(item.data_encontrado)}
+                </p>
+                <p class="claim-details">
+                    <strong>Categoria:</strong>
+                    ${escapeHtml(item.categoria || 'não informado')}
+                </p>
+                <p class="claim-details">
+                    <strong>Aprovação:</strong>
+                    ${aprovacaoTexto}
+                </p>
+            </div>
+            <div class="claim-actions">
+                <p class="claim-status-label">
+                    Status do item: <span>${item.status}</span>
+                </p>
+
+                <button
+                    type="button"
+                    class="item-mark-returned-button"
+                    data-item-id="${item.id}"
+                    ${canMarkReturned ? '' : 'disabled'}
+                >
+                    Marcar como devolvido
+                </button>
+
+                <button
+                    type="button"
+                    class="item-reset-button"
+                    data-item-id="${item.id}"
+                    ${canBackToStock ? '' : 'disabled'}
+                >
+                    Voltar item para estoque
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function getFilteredItems() {
+    let result = [...allItems];
+
+    const term = (searchItemsInput?.value || '').toLowerCase().trim();
+    const statusFilter = filterStatusSelect?.value || '';
+    const aprovadoFilter = filterAprovadoSelect?.value || '';
+
+    if (term) {
+        result = result.filter(item => {
+            const nome = (item.nome || '').toLowerCase();
+            const local = (item.local_encontrado || '').toLowerCase();
+            const categoria = (item.categoria || '').toLowerCase();
+            return (
+                nome.includes(term) ||
+                local.includes(term) ||
+                categoria.includes(term)
+            );
+        });
+    }
+
+    if (statusFilter) {
+        result = result.filter(item => item.status === statusFilter);
+    }
+
+    if (aprovadoFilter === 'true') {
+        result = result.filter(item => item.aprovado === true);
+    } else if (aprovadoFilter === 'false') {
+        result = result.filter(item => item.aprovado === false);
+    }
+
+    return result;
+}
+
+function renderItemsList() {
+    if (!itemsListEl) return;
+
+    const items = getFilteredItems();
+
+    if (!items.length) {
+        showInfoMessage(
+            itemsListEl,
+            'Nenhum item encontrado com os filtros atuais.'
+        );
+        return;
+    }
+
+    itemsListEl.innerHTML = '';
+    items.forEach(item => {
+        itemsListEl.innerHTML += createItemCard(item);
+    });
+}
+
+if (searchItemsInput) {
+    searchItemsInput.addEventListener('input', renderItemsList);
+}
+if (filterStatusSelect) {
+    filterStatusSelect.addEventListener('change', renderItemsList);
+}
+if (filterAprovadoSelect) {
+    filterAprovadoSelect.addEventListener('change', renderItemsList);
+}
+
+// ----------------- Carregamento das APIs -----------------
 
 async function loadClaims() {
+    if (!claimsListEl) return;
+
     showInfoMessage(claimsListEl, 'Carregando reivindicações, só um instante...');
 
     try {
@@ -185,7 +336,30 @@ async function loadClaims() {
     }
 }
 
-// ----------------- Atualizar status da reivindicação -----------------
+async function loadItems() {
+    if (!itemsListEl) return;
+
+    showInfoMessage(itemsListEl, 'Carregando itens, só um instante...');
+
+    try {
+        const response = await fetch('/api/interno/itens/');
+        if (!response.ok) {
+            throw new Error('Erro ao carregar itens');
+        }
+
+        const data = await response.json();
+        allItems = data;
+        renderItemsList();
+    } catch (error) {
+        console.error(error);
+        showInfoMessage(
+            itemsListEl,
+            'Não foi possível carregar os itens agora. Tente recarregar a página em alguns instantes.'
+        );
+    }
+}
+
+// ----------------- Ações: atualizar status e estoque -----------------
 
 async function updateClaimStatus(claimId, newStatus, cardElement) {
     try {
@@ -203,13 +377,13 @@ async function updateClaimStatus(claimId, newStatus, cardElement) {
 
         const data = await response.json();
 
-        // Atualizo label do item no card
+        // Atualizo label do item no card de reivindicação
         const label = cardElement.querySelector('.claim-status-label span');
         if (label && data.item_status) {
             label.textContent = data.item_status;
         }
 
-        // Atualizo também na lista em memória
+        // Atualizo na lista de reivindicações
         allClaims = allClaims.map(claim => {
             if (claim.id === claimId) {
                 return {
@@ -224,6 +398,18 @@ async function updateClaimStatus(claimId, newStatus, cardElement) {
             return claim;
         });
 
+        // Atualizo também na lista de itens, se já carregada
+        allItems = allItems.map(item => {
+            if (item.id === cardElement.dataset.itemId) {
+                return {
+                    ...item,
+                    status: data.item_status,
+                };
+            }
+            return item;
+        });
+        renderItemsList();
+
         cardElement.classList.add('updated-ok');
         setTimeout(() => {
             cardElement.classList.remove('updated-ok');
@@ -234,8 +420,6 @@ async function updateClaimStatus(claimId, newStatus, cardElement) {
         alert('Não foi possível atualizar o status. Tente novamente.');
     }
 }
-
-// ----------------- Voltar item para estoque -----------------
 
 async function resetItemToStock(itemId, cardElement) {
     const confirmReset = window.confirm(
@@ -258,19 +442,13 @@ async function resetItemToStock(itemId, cardElement) {
 
         const data = await response.json();
 
-        // Atualizo label do item no card
+        // Atualizo label do item no card (tanto na aba de reivindicações quanto na de itens)
         const label = cardElement.querySelector('.claim-status-label span');
         if (label && data.status) {
             label.textContent = data.status;
         }
 
-        // Desabilito o botão de reset deste card
-        const resetButton = cardElement.querySelector('.item-reset-button');
-        if (resetButton) {
-            resetButton.disabled = true;
-        }
-
-        // Atualizo todos os claims que usam esse item na lista em memória
+        // Atualiza arrays em memória
         allClaims = allClaims.map(claim => {
             if (claim.item.id === itemId) {
                 return {
@@ -284,6 +462,23 @@ async function resetItemToStock(itemId, cardElement) {
             return claim;
         });
 
+        allItems = allItems.map(item => {
+            if (item.id === itemId) {
+                return {
+                    ...item,
+                    status: data.status,
+                };
+            }
+            return item;
+        });
+        renderItemsList();
+
+        // Desabilita o botão de reset deste card, se existir
+        const resetButton = cardElement.querySelector('.item-reset-button');
+        if (resetButton) {
+            resetButton.disabled = true;
+        }
+
         cardElement.classList.add('updated-ok');
         setTimeout(() => {
             cardElement.classList.remove('updated-ok');
@@ -295,8 +490,78 @@ async function resetItemToStock(itemId, cardElement) {
     }
 }
 
+async function markItemAsReturned(itemId, cardElement) {
+    const confirmReturn = window.confirm(
+        'Confirmar devolução deste item ao dono? O status será marcado como "Devolvido".'
+    );
+    if (!confirmReturn) return;
+
+    try {
+        const response = await fetch(`/api/interno/itens/${itemId}/devolver/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Erro ao marcar item como devolvido');
+        }
+
+        const data = await response.json();
+
+        // Atualizo label do item no card
+        const label = cardElement.querySelector('.claim-status-label span');
+        if (label && data.status) {
+            label.textContent = data.status;
+        }
+
+        // Atualiza arrays em memória
+        allItems = allItems.map(item => {
+            if (item.id === itemId) {
+                return {
+                    ...item,
+                    status: data.status,
+                };
+            }
+            return item;
+        });
+        renderItemsList();
+
+        allClaims = allClaims.map(claim => {
+            if (claim.item.id === itemId) {
+                return {
+                    ...claim,
+                    item: {
+                        ...claim.item,
+                        status: data.status,
+                    },
+                };
+            }
+            return claim;
+        });
+        renderClaims(getFilteredClaims());
+
+        // Desabilita botão "Marcar como devolvido" desse card
+        const btn = cardElement.querySelector('.item-mark-returned-button');
+        if (btn) {
+            btn.disabled = true;
+        }
+
+        cardElement.classList.add('updated-ok');
+        setTimeout(() => {
+            cardElement.classList.remove('updated-ok');
+        }, 800);
+
+    } catch (error) {
+        console.error(error);
+        alert('Não foi possível marcar o item como devolvido. Tente novamente.');
+    }
+}
+
 // ----------------- Delegação de eventos -----------------
 
+// Reivindicações
 if (claimsListEl) {
     claimsListEl.addEventListener('click', async (event) => {
         const card = event.target.closest('.claim-card');
@@ -310,8 +575,8 @@ if (claimsListEl) {
 
             const claimId = Number(select.dataset.claimId);
             const newStatus = select.value;
-
             if (!claimId) return;
+
             await updateClaimStatus(claimId, newStatus, card);
             return;
         }
@@ -327,8 +592,32 @@ if (claimsListEl) {
     });
 }
 
+// Itens
+if (itemsListEl) {
+    itemsListEl.addEventListener('click', async (event) => {
+        const card = event.target.closest('.internal-item-card');
+        if (!card) return;
+
+        const itemId = Number(card.dataset.itemId);
+        if (!itemId) return;
+
+        const markReturnedBtn = event.target.closest('.item-mark-returned-button');
+        const resetBtn = event.target.closest('.item-reset-button');
+
+        if (markReturnedBtn && !markReturnedBtn.disabled) {
+            await markItemAsReturned(itemId, card);
+            return;
+        }
+
+        if (resetBtn && !resetBtn.disabled) {
+            await resetItemToStock(itemId, card);
+        }
+    });
+}
+
 // ----------------- Inicialização -----------------
 
 document.addEventListener('DOMContentLoaded', () => {
     loadClaims();
+    loadItems();
 });

@@ -655,6 +655,29 @@ button[type="submit"]:active {
     cursor: not-allowed;
 }
 
+/* botão de marcar item como devolvido */
+.item-mark-returned-button {
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid #16a34a;
+    background: #dcfce7;
+    color: #166534;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.2s ease, box-shadow 0.15s ease, transform 0.1s ease;
+}
+
+.item-mark-returned-button:hover {
+    background: #bbf7d0;
+    box-shadow: 0 6px 14px rgba(22, 163, 74, 0.35);
+    transform: translateY(-1px);
+}
+
+.item-mark-returned-button:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
 .claim-status-label {
     font-size: 0.8rem;
     color: var(--text-muted);

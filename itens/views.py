@@ -263,6 +263,50 @@ def internal_claim_update_status(request, claim_id):
 
 
 @csrf_exempt
+@require_http_methods(["GET"])
+def internal_items_list(request):
+    """
+    Retorna todos os itens cadastrados para uso interno no painel.
+
+    Aqui não filtro por status ou aprovação, deixo a filtragem
+    para o JavaScript no painel interno.
+    """
+    itens = Item.objects.order_by("-data_encontrado", "-data_criacao")
+
+    data = []
+    for item in itens:
+        data.append({
+            "id": item.id,
+            "nome": item.nome,
+            "status": item.status,
+            "aprovado": item.aprovado,
+            "local_encontrado": item.local_encontrado or "",
+            "data_encontrado": item.data_encontrado.isoformat(),
+            "categoria": item.categoria or "",
+            "descricao": item.descricao or "",
+        })
+
+    return JsonResponse(data, safe=False)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def internal_item_mark_returned(request, item_id):
+    """
+    Uso interno: marca um item como 'Devolvido' quando o bem é
+    efetivamente entregue ao dono.
+    """
+    item = get_object_or_404(Item, id=item_id)
+    item.status = "Devolvido"
+    item.save(update_fields=["status"])
+
+    return JsonResponse({
+        "id": item.id,
+        "status": item.status,
+    })
+
+
+@csrf_exempt
 @require_http_methods(["POST"])
 def internal_item_back_to_stock(request, item_id):
     """

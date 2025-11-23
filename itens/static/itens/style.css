@@ -27,6 +27,90 @@
     --white: #ffffff;
 }
 
+/* ============================================================
+   Tema alternativo para o PAINEL INTERNO
+   (uso uma paleta de azul + verde que conversa com o site,
+   mas deixa visualmente claro que é área restrita)
+   ============================================================ */
+
+body.internal-theme {
+    /* sobrescrevo as variáveis só para esta tela */
+    --bg-body: #020617;
+    --bg-surface: #020617;
+    --bg-surface-light: #0b1120;
+
+    --primary: #0ea5e9;        /* azul-ciano (mais "interno") */
+    --primary-soft: #082f49;
+    --primary-hover: #38bdf8;
+
+    --accent: #22c55e;         /* verdinho só para detalhes internos */
+    --danger: #ef4444;
+    --danger-soft: #451a1a;
+
+    --border-subtle: #1e293b;
+    --text-main: #e5e7eb;
+    --text-muted: #9ca3af;
+    --white: #020617;
+}
+
+/* Fundo geral diferente do público (mais teal/verde) */
+body.internal-theme {
+    background: radial-gradient(
+        circle at top left,
+        #0ea5e9 0,
+        #022c22 40%,
+        #020617 100%
+    );
+    color: var(--text-main);
+}
+
+/* Sidebar interna um pouco mais “flat” e pesada */
+body.internal-theme .sidebar {
+    background: linear-gradient(180deg, #020617, #020617);
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.85);
+}
+
+/* Conteúdo interno com fundo mais escuro */
+body.internal-theme .content {
+    background: #020617;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7);
+}
+
+/* Cartões internos com cara de painel (escuros) */
+body.internal-theme .claim-card,
+body.internal-theme .internal-item-card,
+body.internal-theme .form-card,
+body.internal-theme .about,
+body.internal-theme .note {
+    background: #0b1120;
+    border-color: #1f2937;
+}
+
+/* Textos informativos dentro desses blocos */
+body.internal-theme .about p,
+body.internal-theme .note,
+body.internal-theme .item-location,
+body.internal-theme .claim-details {
+    color: var(--text-muted);
+}
+
+/* Botões de menu interno com leve ajuste de cor */
+body.internal-theme .menu-item {
+    background: rgba(15, 23, 42, 0.95);
+    border-color: rgba(148, 163, 184, 0.4);
+}
+
+body.internal-theme .menu-item.active {
+    background: #0ea5e9;
+    border-color: #38bdf8;
+    color: #f9fafb;
+}
+
+body.internal-theme .menu-item.active::before {
+    color: var(--accent); /* bolinha verdinha no ativo */
+}
+
+
 /* Reset básico + tipografia global */
 * {
     box-sizing: border-box;
@@ -874,4 +958,166 @@ button[type="submit"]:active {
     .pagination {
         justify-content: center;
     }
+}
+
+/* ============================================================
+   Ajustes finos de UI para o PAINEL INTERNO (tema escuro)
+   ============================================================ */
+
+/* Caixas de busca e selects no painel interno */
+body.internal-theme .search-container label {
+    color: var(--text-muted);
+}
+
+body.internal-theme .search-bar,
+body.internal-theme select.search-bar {
+    background: #0b1120;
+    color: var(--text-main);
+    border: 1px solid #1f2937;
+    border-radius: 12px;
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.8);
+}
+
+body.internal-theme .search-bar::placeholder {
+    color: #6b7280;
+}
+
+body.internal-theme .search-bar:focus,
+body.internal-theme select.search-bar:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 1px rgba(14, 165, 233, 0.6);
+}
+
+/* Select de status da REIVINDICAÇÃO (Pendente, Aprovada etc.) */
+body.internal-theme .claim-status-select {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 999px;
+    border: 1px solid #1f2937;
+    background: #020617;
+    color: var(--text-main);
+    font-size: 0.85rem;
+    appearance: none; /* tira setinha nativa feia */
+    background-image: linear-gradient(45deg, #9ca3af 50%, transparent 50%),
+                      linear-gradient(135deg, transparent 50%, #9ca3af 50%);
+    background-position: calc(100% - 16px) calc(50% - 3px),
+                         calc(100% - 11px) calc(50% - -3px);
+    background-size: 6px 6px,
+                     6px 6px;
+    background-repeat: no-repeat;
+}
+
+body.internal-theme .claim-status-select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 1px rgba(14, 165, 233, 0.6);
+}
+
+/* Cards escuros no painel interno */
+body.internal-theme .claim-card,
+body.internal-theme .internal-item-card {
+    background: #020617;
+    border-color: #111827;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.65);
+}
+
+body.internal-theme .claim-main h3 {
+    color: #e5e7eb;
+}
+
+body.internal-theme .item-location,
+body.internal-theme .claim-details {
+    color: var(--text-muted);
+}
+
+/* Título de seção no painel interno */
+body.internal-theme .tab-header h2 {
+    color: #e5e7eb;
+}
+
+body.internal-theme .tab-header p {
+    color: #9ca3af;
+}
+
+/* Botão "Salvar status" (reivindicações) */
+body.internal-theme .claim-save-button {
+    margin-top: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: none;
+    background: var(--primary);
+    color: #f9fafb;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease, box-shadow 0.15s ease, transform 0.1s ease;
+    width: 100%;
+}
+
+body.internal-theme .claim-save-button:hover {
+    background: var(--primary-hover);
+    box-shadow: 0 10px 22px rgba(14, 165, 233, 0.35);
+    transform: translateY(-1px);
+}
+
+body.internal-theme .claim-save-button:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* Botão "Voltar item para estoque" (cor de atenção) */
+body.internal-theme .item-reset-button {
+    margin-top: 6px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    border: 1px solid #fbbf24;
+    background: #451a03;
+    color: #fef3c7;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.2s ease, box-shadow 0.15s ease, transform 0.1s ease;
+    width: 100%;
+}
+
+body.internal-theme .item-reset-button:hover:not(:disabled) {
+    background: #92400e;
+    box-shadow: 0 8px 18px rgba(245, 158, 11, 0.35);
+    transform: translateY(-1px);
+}
+
+body.internal-theme .item-reset-button:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+/* Botão "Marcar como devolvido" (cor de sucesso) */
+body.internal-theme .item-mark-returned-button {
+    margin-top: 6px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    border: 1px solid #22c55e;
+    background: #022c22;
+    color: #bbf7d0;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.2s ease, box-shadow 0.15s ease, transform 0.1s ease;
+    width: 100%;
+}
+
+body.internal-theme .item-mark-returned-button:hover:not(:disabled) {
+    background: #166534;
+    box-shadow: 0 8px 18px rgba(34, 197, 94, 0.35);
+    transform: translateY(-1px);
+}
+
+body.internal-theme .item-mark-returned-button:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+/* Textinho de ajuda abaixo dos botões */
+body.internal-theme .claim-helper-text,
+body.internal-theme .claim-status-label {
+    color: #9ca3af;
 }

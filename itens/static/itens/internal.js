@@ -2,66 +2,101 @@
 // Achados e Perdidos - UnDF
 // Arquivo: internal.js
 //
-// Painel interno:
-// - Abas: Reivindicações e Itens;
-// - Lista reivindicações (com vínculo, identificação, contato);
-// - Atualiza status de reivindicação;
-// - Volta item para estoque (correção de erro);
-// - Lista itens (estoque, reivindicados, devolvidos);
-// - Marca item como devolvido.
+// Script do PAINEL INTERNO. Aqui eu (estudante de CC) faço:
+// - carregamento das reivindicações e itens via API interna;
+// - filtros de busca;
+// - mudança de status das reivindicações;
+// - controle de estoque (devolvido / voltar para estoque);
+// - troca de abas no painel.
 // ============================================================
 
-// Estado em memória
+// Arrays em memória para eu poder filtrar sem ficar batendo na API
 let allClaims = [];
 let allItems = [];
 
-// Elementos gerais
-const claimsListEl = document.getElementById('claimsList');
-const searchClaimsInput = document.getElementById('searchClaims');
+// Referências globais aos elementos do DOM (vou preencher no DOMContentLoaded)
+let claimsListEl;
+let itemsListEl;
+let searchClaimsInput;
+let searchItemsInput;
+let statusFilter;
+let approvalFilter;
 
-const itemsListEl = document.getElementById('itemsList');
-const searchItemsInput = document.getElementById('searchItems');
-const filterStatusSelect = document.getElementById('filterStatus');
-const filterAprovadoSelect = document.getElementById('filterAprovado');
+// ------------------------------------------------------------
+// Inicialização
+// ------------------------------------------------------------
 
-// Abas do painel interno
-const internalTabs = document.querySelectorAll('.menu .menu-item[data-tab]');
-const internalTabContents = document.querySelectorAll('.content .tab-content');
+document.addEventListener('DOMContentLoaded', () => {
+    // Pega os elementos do HTML
+    claimsListEl = document.getElementById('claimsList');
+    itemsListEl = document.getElementById('itemsList');
+    searchClaimsInput = document.getElementById('searchClaims');
+    searchItemsInput = document.getElementById('searchItems');
+    statusFilter = document.getElementById('filterStatus');
+    approvalFilter = document.getElementById('filterAprovado');
 
-// ----------------- Helpers -----------------
+    setupTabs();
 
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return dateString;
+    // Filtros de reivindicações
+    if (searchClaimsInput) {
+        searchClaimsInput.addEventListener('input', () => {
+            renderClaims(getFilteredClaims());
+        });
+    }
 
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-}
+    // Filtros de itens
+    if (searchItemsInput) {
+        searchItemsInput.addEventListener('input', () => {
+            renderItemsList();
+        });
+    }
 
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text || '';
-    return div.innerHTML;
-}
+    if (statusFilter) {
+        statusFilter.addEventListener('change', () => {
+            renderItemsList();
+        });
+    }
 
-function showInfoMessage(targetElement, text) {
-    targetElement.innerHTML = `<p class="info-text">${text}</p>`;
-}
+    if (approvalFilter) {
+        approvalFilter.addEventListener('change', () => {
+            renderItemsList();
+        });
+    }
 
-// ----------------- Tabs internas -----------------
+    // Delegação de eventos para botões dentro da lista de reivindicações
+    if (claimsListEl) {
+        claimsListEl.addEventListener('click', onClaimsListClick);
+    }
 
-if (internalTabs.length) {
-    internalTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const target = tab.dataset.tab;
+    // Delegação de eventos para botões dentro da lista de itens
+    if (itemsListEl) {
+        itemsListEl.addEventListener('click', onItemsListClick);
+    }
 
-            internalTabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
+    // Carrega dados iniciais
+    loadClaims();
+    loadItems();
+});
 
-            internalTabContents.forEach(section => {
-                if (section.id === target) {
+// ------------------------------------------------------------
+// Troca de abas (Reivindicações / Itens cadastrados)
+// ------------------------------------------------------------
+
+function setupTabs() {
+    const menuButtons = document.querySelectorAll('.menu-item');
+    const tabSections = document.querySelectorAll('.tab-content');
+
+    menuButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+            const targetId = button.dataset.tab;
+
+            // marca o botão ativo
+            menuButtons.forEach((btn) => btn.classList.remove('active'));
+            button.classList.add('active');
+
+            // mostra/esconde as seções
+            tabSections.forEach((section) => {
+                if (section.id === targetId) {
                     section.classList.remove('hidden');
                 } else {
                     section.classList.add('hidden');
@@ -71,208 +106,281 @@ if (internalTabs.length) {
     });
 }
 
-// ----------------- Reivindicações -----------------
+// ------------------------------------------------------------
+// Helpers gerais
+// ------------------------------------------------------------
 
-function createClaimCard(claim) {
-    const statusOptions = ['Pendente', 'Aprovada', 'Recusada'];
-    const optionsHtml = statusOptions.map(status => `
-        <option value="${status}" ${status === claim.status ? 'selected' : ''}>
-            ${status}
-        </option>
-    `).join('');
+// Função simples só pra não correr risco de XSS caso uma string venha do backend
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
 
-    const canResetItem = claim.item.status !== 'Em estoque';
+// Converte 'YYYY-MM-DD' para 'dd/mm/aaaa'
+function formatDate(isoDate) {
+    if (!isoDate) return '';
+    const parts = isoDate.split('-');
+    if (parts.length !== 3) return isoDate;
+    const [year, month, day] = parts;
+    return `${day}/${month}/${year}`;
+}
 
-    const vinculoLabel = claim.vinculo ? ` (${claim.vinculo})` : '';
-    const identificacaoLabel = claim.identificacao
-        ? ` — ID: ${escapeHtml(claim.identificacao)}`
-        : '';
+// ------------------------------------------------------------
+// Carregamento de dados via API
+// ------------------------------------------------------------
 
-    return `
-        <div class="item-card claim-card" data-claim-id="${claim.id}">
-            <div class="claim-main">
-                <h3>${escapeHtml(claim.item.nome)}</h3>
-                <p class="item-location">
-                    ${escapeHtml(claim.item.local_encontrado)}
-                    • Encontrado em ${formatDate(claim.item.data_encontrado)}
-                </p>
-                <p>
-                    <strong>Requerente:</strong>
-                    ${escapeHtml(claim.nome_requerente)}${vinculoLabel}${identificacaoLabel}
-                </p>
-                <p class="claim-details">
-                    <strong>Contato:</strong>
-                    ${escapeHtml(claim.contato || 'não informado')}
-                </p>
-                <p class="claim-details">
-                    <strong>Detalhes informados:</strong>
-                    ${escapeHtml(claim.detalhes)}
-                </p>
-                <p class="claim-details">
-                    <strong>Data da solicitação:</strong>
-                    ${formatDate(claim.data_envio)}
-                </p>
-            </div>
-            <div class="claim-actions">
-                <label for="status-${claim.id}">Status da reivindicação:</label>
-                <select
-                    id="status-${claim.id}"
-                    class="claim-status-select"
-                    data-claim-id="${claim.id}"
-                >
-                    ${optionsHtml}
-                </select>
+async function loadClaims() {
+    if (!claimsListEl) return;
 
-                <button
-                    type="button"
-                    class="claim-save-button"
-                >
-                    Salvar status
-                </button>
+    try {
+        const response = await fetch('/api/interno/reivindicacoes/');
+        if (!response.ok) {
+            throw new Error('Erro ao carregar reivindicações');
+        }
+        allClaims = await response.json();
+        renderClaims(getFilteredClaims());
+    } catch (error) {
+        console.error(error);
+        claimsListEl.innerHTML = `
+            <p class="info-text">
+                Não foi possível carregar as reivindicações no momento.
+            </p>
+        `;
+    }
+}
 
-                <p class="claim-status-label">
-                    Item: <span>${claim.item.status}</span>
-                </p>
+async function loadItems() {
+    if (!itemsListEl) return;
 
-                <button
-                    type="button"
-                    class="item-reset-button"
-                    data-item-id="${claim.item.id}"
-                    ${canResetItem ? '' : 'disabled'}
-                >
-                    Voltar item para estoque
-                </button>
-                <small class="claim-hint">
-                    Use apenas em caso de correção de erro.
-                </small>
-            </div>
-        </div>
-    `;
+    try {
+        const response = await fetch('/api/interno/itens/');
+        if (!response.ok) {
+            throw new Error('Erro ao carregar itens internos');
+        }
+        allItems = await response.json();
+        renderItemsList();
+    } catch (error) {
+        console.error(error);
+        itemsListEl.innerHTML = `
+            <p class="info-text">
+                Não foi possível carregar a lista de itens cadastrados.
+            </p>
+        `;
+    }
+}
+
+// ------------------------------------------------------------
+// Filtro e render das REIVINDICAÇÕES
+// ------------------------------------------------------------
+
+function getFilteredClaims() {
+    let result = [...allClaims];
+
+    const term = (searchClaimsInput?.value || '').toLowerCase().trim();
+    if (term) {
+        result = result.filter((claim) => {
+            const nome = (claim.nome_requerente || '').toLowerCase();
+            const contato = (claim.contato || '').toLowerCase();
+            const detalhes = (claim.detalhes || '').toLowerCase();
+            const vinculo = (claim.vinculo || '').toLowerCase();
+            const identificacao = (claim.identificacao || '').toLowerCase();
+            const itemNome = (claim.item?.nome || '').toLowerCase();
+            const idStr = String(claim.id || '');
+
+            // Procuro termo em vários campos
+            return (
+                nome.includes(term) ||
+                contato.includes(term) ||
+                detalhes.includes(term) ||
+                vinculo.includes(term) ||
+                identificacao.includes(term) ||
+                itemNome.includes(term) ||
+                idStr.includes(term)
+            );
+        });
+    }
+
+    return result;
 }
 
 function renderClaims(claims) {
-    if (!claims || claims.length === 0) {
-        showInfoMessage(
-            claimsListEl,
-            'Nenhuma reivindicação registrada até o momento.'
-        );
+    if (!claimsListEl) return;
+
+    if (!claims || !claims.length) {
+        claimsListEl.innerHTML = `
+            <p class="info-text">
+                Nenhuma reivindicação registrada até o momento.
+            </p>
+        `;
         return;
     }
 
-    claimsListEl.innerHTML = '';
-    claims.forEach(claim => {
-        claimsListEl.innerHTML += createClaimCard(claim);
-    });
+    const html = claims.map(createClaimCard).join('');
+    claimsListEl.innerHTML = html;
 }
 
-function getFilteredClaims() {
-    const term = (searchClaimsInput?.value || '').toLowerCase().trim();
-    if (!term) return [...allClaims];
+// Aqui eu defino os status possíveis para o select
+const CLAIM_STATUS_OPTIONS = [
+    'Pendente',
+    'Em análise',
+    'Aprovada',
+    'Recusada',
+];
 
-    return allClaims.filter(claim => {
-        const itemName = (claim.item.nome || '').toLowerCase();
-        const local = (claim.item.local_encontrado || '').toLowerCase();
-        const nome = (claim.nome_requerente || '').toLowerCase();
-        const contato = (claim.contato || '').toLowerCase();
-        const vinculo = (claim.vinculo || '').toLowerCase();
-        const identificacao = (claim.identificacao || '').toLowerCase();
+function createClaimCard(claim) {
+    const item = claim.item || {};
 
-        return (
-            itemName.includes(term) ||
-            local.includes(term) ||
-            nome.includes(term) ||
-            contato.includes(term) ||
-            vinculo.includes(term) ||
-            identificacao.includes(term)
-        );
-    });
-}
-
-if (searchClaimsInput) {
-    searchClaimsInput.addEventListener('input', () => {
-        const filtered = getFilteredClaims();
-        renderClaims(filtered);
-    });
-}
-
-// ----------------- Lista de Itens -----------------
-
-function createItemCard(item) {
-    const aprovacaoTexto = item.aprovado
-        ? 'Aprovado para aparecer no site'
-        : 'Pendente de aprovação';
-
-    const canBackToStock = item.status !== 'Em estoque';
-    const canMarkReturned = item.status !== 'Devolvido';
-
-    const approvalButtonLabel = item.aprovado
-        ? 'Retirar do site'
-        : 'Aprovar para aparecer no site';
+    const statusOptionsHtml = CLAIM_STATUS_OPTIONS
+        .map((status) => {
+            const selected = status === claim.status ? 'selected' : '';
+            return `<option value="${status}" ${selected}>${status}</option>`;
+        })
+        .join('');
 
     return `
-        <div class="item-card claim-card internal-item-card"
-             data-item-id="${item.id}"
-             data-aprovado="${item.aprovado ? 'true' : 'false'}">
+        <div class="item-card claim-card internal-claim-card"
+             data-claim-id="${claim.id}"
+             data-item-id="${item.id}">
             <div class="claim-main">
-                <h3>${escapeHtml(item.nome)}</h3>
+                <h3>${escapeHtml(item.nome || 'Item sem nome')}</h3>
                 <p class="item-location">
-                    ${escapeHtml(item.local_encontrado)}
+                    ${escapeHtml(item.local_encontrado || 'local não informado')}
                     • Encontrado em ${formatDate(item.data_encontrado)}
                 </p>
+
                 <p class="claim-details">
-                    <strong>Categoria:</strong>
-                    ${escapeHtml(item.categoria || 'não informado')}
+                    <strong>Requerente:</strong> ${escapeHtml(claim.nome_requerente || '')}
+                    ${claim.vinculo ? ` (${escapeHtml(claim.vinculo)})` : ''}
+                    ${claim.identificacao ? ` — ID: ${escapeHtml(claim.identificacao)}` : ''}
                 </p>
-                <p class="claim-details item-approval-text">
-                    <strong>Aprovação:</strong>
-                    ${aprovacaoTexto}
+                <p class="claim-details">
+                    <strong>Contato:</strong> ${escapeHtml(claim.contato || 'não informado')}
+                </p>
+                <p class="claim-details">
+                    <strong>Detalhes informados:</strong> ${escapeHtml(claim.detalhes || '')}
+                </p>
+                <p class="claim-details">
+                    <strong>Data da solicitação:</strong> ${formatDate(claim.data_envio)}
                 </p>
             </div>
             <div class="claim-actions">
                 <p class="claim-status-label">
-                    Status do item: <span>${item.status}</span>
+                    Status da reivindicação:
+                </p>
+                <select class="claim-status-select">
+                    ${statusOptionsHtml}
+                </select>
+                <button type="button"
+                        class="claim-save-button">
+                    Salvar status
+                </button>
+
+                <p class="claim-status-label item-status-label">
+                    Item: <span>${item.status || 'Sem status'}</span>
                 </p>
 
-                <button
-                    type="button"
-                    class="item-approval-button item-toggle-approval-button"
-                    data-item-id="${item.id}"
-                >
-                    ${approvalButtonLabel}
-                </button>
-
-                <button
-                    type="button"
-                    class="item-mark-returned-button"
-                    data-item-id="${item.id}"
-                    ${canMarkReturned ? '' : 'disabled'}
-                >
-                    Marcar como devolvido
-                </button>
-
-                <button
-                    type="button"
-                    class="item-reset-button"
-                    data-item-id="${item.id}"
-                    ${canBackToStock ? '' : 'disabled'}
-                >
+                <button type="button"
+                        class="item-reset-button"
+                        ${item.status === 'Em estoque' ? 'disabled' : ''}>
                     Voltar item para estoque
                 </button>
+                <p class="claim-helper-text">
+                    Use apenas em caso de correção de erro.
+                </p>
             </div>
         </div>
     `;
 }
 
+// ------------------------------------------------------------
+// Ações na lista de reivindicações
+// ------------------------------------------------------------
+
+async function onClaimsListClick(event) {
+    const card = event.target.closest('.internal-claim-card');
+    if (!card) return;
+
+    const claimId = Number(card.dataset.claimId);
+    const itemId = Number(card.dataset.itemId) || null;
+
+    const saveBtn = event.target.closest('.claim-save-button');
+    const resetBtn = event.target.closest('.item-reset-button');
+
+    if (saveBtn) {
+        const select = card.querySelector('.claim-status-select');
+        if (!select) return;
+
+        const newStatus = select.value;
+        await updateClaimStatus(claimId, itemId, newStatus);
+        return;
+    }
+
+    if (resetBtn && !resetBtn.disabled && itemId) {
+        await resetItemToStock(itemId);
+    }
+}
+
+async function updateClaimStatus(claimId, itemId, newStatus) {
+    try {
+        const response = await fetch(`/api/interno/reivindicacoes/${claimId}/status/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ status: newStatus }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Erro ao atualizar status da reivindicação');
+        }
+
+        const data = await response.json();
+
+        // Atualiza array de reivindicações
+        allClaims = allClaims.map((claim) => {
+            if (claim.id === claimId) {
+                const newClaim = { ...claim, status: data.status };
+                if (itemId && data.item_status && claim.item) {
+                    newClaim.item = { ...claim.item, status: data.item_status };
+                }
+                return newClaim;
+            }
+            return claim;
+        });
+
+        // Atualiza também o array de itens, se recebemos novo status
+        if (itemId && data.item_status) {
+            allItems = allItems.map((item) => {
+                if (item.id === itemId) {
+                    return { ...item, status: data.item_status };
+                }
+                return item;
+            });
+        }
+
+        renderClaims(getFilteredClaims());
+        renderItemsList();
+    } catch (error) {
+        console.error(error);
+        alert('Não foi possível salvar o status da reivindicação. Tente novamente.');
+    }
+}
+
+// ------------------------------------------------------------
+// Filtro e render dos ITENS (aba "Itens cadastrados")
+// ------------------------------------------------------------
 
 function getFilteredItems() {
     let result = [...allItems];
 
     const term = (searchItemsInput?.value || '').toLowerCase().trim();
-    const statusFilter = filterStatusSelect?.value || '';
-    const aprovadoFilter = filterAprovadoSelect?.value || '';
-
     if (term) {
-        result = result.filter(item => {
+        result = result.filter((item) => {
             const nome = (item.nome || '').toLowerCase();
             const local = (item.local_encontrado || '').toLowerCase();
             const categoria = (item.categoria || '').toLowerCase();
@@ -284,14 +392,13 @@ function getFilteredItems() {
         });
     }
 
-    if (statusFilter) {
-        result = result.filter(item => item.status === statusFilter);
+    if (statusFilter && statusFilter.value) {
+        result = result.filter((item) => item.status === statusFilter.value);
     }
 
-    if (aprovadoFilter === 'true') {
-        result = result.filter(item => item.aprovado === true);
-    } else if (aprovadoFilter === 'false') {
-        result = result.filter(item => item.aprovado === false);
+    if (approvalFilter && approvalFilter.value !== '') {
+        const aprovadoBool = approvalFilter.value === 'true';
+        result = result.filter((item) => item.aprovado === aprovadoBool);
     }
 
     return result;
@@ -302,279 +409,99 @@ function renderItemsList() {
 
     const items = getFilteredItems();
 
-    if (!items.length) {
-        showInfoMessage(
-            itemsListEl,
-            'Nenhum item encontrado com os filtros atuais.'
-        );
+    if (!items || !items.length) {
+        itemsListEl.innerHTML = `
+            <p class="info-text">
+                Nenhum item cadastrado corresponde aos filtros selecionados.
+            </p>
+        `;
         return;
     }
 
-    itemsListEl.innerHTML = '';
-    items.forEach(item => {
-        itemsListEl.innerHTML += createItemCard(item);
-    });
+    const html = items.map(createInternalItemCard).join('');
+    itemsListEl.innerHTML = html;
 }
 
-if (searchItemsInput) {
-    searchItemsInput.addEventListener('input', renderItemsList);
+function createInternalItemCard(item) {
+    const aprovacaoTexto = item.aprovado
+        ? 'Aprovado para aparecer no site'
+        : 'Pendente de aprovação';
+
+    const canBackToStock = item.status !== 'Em estoque';
+    const canMarkReturned = item.status !== 'Devolvido';
+
+    return `
+        <div class="item-card claim-card internal-item-card"
+             data-item-id="${item.id}">
+            <div class="claim-main">
+                <h3>${escapeHtml(item.nome)}</h3>
+                <p class="item-location">
+                    ${escapeHtml(item.local_encontrado || 'local não informado')}
+                    • Encontrado em ${formatDate(item.data_encontrado)}
+                </p>
+                <p class="claim-details">
+                    <strong>Categoria:</strong>
+                    ${escapeHtml(item.categoria || 'não informado')}
+                </p>
+                <p class="claim-details">
+                    <strong>Aprovação:</strong>
+                    ${aprovacaoTexto}
+                </p>
+            </div>
+            <div class="claim-actions">
+                <p class="claim-status-label">
+                    Status do item: <span>${item.status}</span>
+                </p>
+                <button
+                    type="button"
+                    class="item-mark-returned-button"
+                    ${canMarkReturned ? '' : 'disabled'}
+                >
+                    Marcar como devolvido
+                </button>
+
+                <button
+                    type="button"
+                    class="item-reset-button"
+                    ${canBackToStock ? '' : 'disabled'}
+                >
+                    Voltar item para estoque
+                </button>
+            </div>
+        </div>
+    `;
 }
-if (filterStatusSelect) {
-    filterStatusSelect.addEventListener('change', renderItemsList);
-}
-if (filterAprovadoSelect) {
-    filterAprovadoSelect.addEventListener('change', renderItemsList);
-}
 
-// ----------------- Carregamento das APIs -----------------
+// ------------------------------------------------------------
+// Ações na aba de ITENS
+// ------------------------------------------------------------
 
-async function loadClaims() {
-    if (!claimsListEl) return;
+async function onItemsListClick(event) {
+    const card = event.target.closest('.internal-item-card');
+    if (!card) return;
 
-    showInfoMessage(claimsListEl, 'Carregando reivindicações, só um instante...');
+    const itemId = Number(card.dataset.itemId);
+    if (!itemId) return;
 
-    try {
-        const response = await fetch('/api/interno/reivindicacoes/');
-        if (!response.ok) {
-            throw new Error('Erro ao carregar reivindicações');
-        }
+    const markReturnedBtn = event.target.closest('.item-mark-returned-button');
+    const resetBtn = event.target.closest('.item-reset-button');
 
-        const data = await response.json();
-        allClaims = data;
-        renderClaims(allClaims);
-    } catch (error) {
-        console.error(error);
-        showInfoMessage(
-            claimsListEl,
-            'Não foi possível carregar as reivindicações agora. Tente recarregar a página em alguns instantes.'
-        );
+    if (markReturnedBtn && !markReturnedBtn.disabled) {
+        await markItemAsReturned(itemId);
+        return;
+    }
+
+    if (resetBtn && !resetBtn.disabled) {
+        await resetItemToStock(itemId);
     }
 }
 
-async function loadItems() {
-    if (!itemsListEl) return;
-
-    showInfoMessage(itemsListEl, 'Carregando itens, só um instante...');
-
-    try {
-        const response = await fetch('/api/interno/itens/');
-        if (!response.ok) {
-            throw new Error('Erro ao carregar itens');
-        }
-
-        const data = await response.json();
-        allItems = data;
-        renderItemsList();
-    } catch (error) {
-        console.error(error);
-        showInfoMessage(
-            itemsListEl,
-            'Não foi possível carregar os itens agora. Tente recarregar a página em alguns instantes.'
-        );
-    }
-}
-
-// ----------------- Ações: atualizar status e estoque -----------------
-
-async function updateClaimStatus(claimId, newStatus, cardElement) {
-    try {
-        const response = await fetch(`/api/interno/reivindicacoes/${claimId}/status/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ status: newStatus }),
-        });
-
-        if (!response.ok) {
-            throw new Error('Erro ao atualizar status');
-        }
-
-        const data = await response.json();
-
-        // Atualizo label do item no card de reivindicação
-        const label = cardElement.querySelector('.claim-status-label span');
-        if (label && data.item_status) {
-            label.textContent = data.item_status;
-        }
-
-        // Atualizo na lista de reivindicações
-        allClaims = allClaims.map(claim => {
-            if (claim.id === claimId) {
-                return {
-                    ...claim,
-                    status: data.status,
-                    item: {
-                        ...claim.item,
-                        status: data.item_status,
-                    },
-                };
-            }
-            return claim;
-        });
-
-        // Atualizo também na lista de itens, se já carregada
-        allItems = allItems.map(item => {
-            if (item.id === cardElement.dataset.itemId) {
-                return {
-                    ...item,
-                    status: data.item_status,
-                };
-            }
-            return item;
-        });
-        renderItemsList();
-
-        cardElement.classList.add('updated-ok');
-        setTimeout(() => {
-            cardElement.classList.remove('updated-ok');
-        }, 800);
-
-    } catch (error) {
-        console.error(error);
-        alert('Não foi possível atualizar o status. Tente novamente.');
-    }
-}
-
-async function resetItemToStock(itemId, cardElement) {
-    const confirmReset = window.confirm(
-        'Tem certeza que deseja voltar este item para "Em estoque"? ' +
-        'Use essa opção apenas em caso de correção de erro interno.'
-    );
-    if (!confirmReset) return;
-
-    try {
-        const response = await fetch(`/api/interno/itens/${itemId}/back_to_stock/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-
-        if (!response.ok) {
-            throw new Error('Erro ao voltar item para estoque');
-        }
-
-        const data = await response.json();
-
-        // Atualizo label do item no card (tanto na aba de reivindicações quanto na de itens)
-        const label = cardElement.querySelector('.claim-status-label span');
-        if (label && data.status) {
-            label.textContent = data.status;
-        }
-
-        // Atualiza arrays em memória
-        allClaims = allClaims.map(claim => {
-            if (claim.item.id === itemId) {
-                return {
-                    ...claim,
-                    item: {
-                        ...claim.item,
-                        status: data.status,
-                    },
-                };
-            }
-            return claim;
-        });
-
-        allItems = allItems.map(item => {
-            if (item.id === itemId) {
-                return {
-                    ...item,
-                    status: data.status,
-                };
-            }
-            return item;
-        });
-        renderItemsList();
-
-        // Desabilita o botão de reset deste card, se existir
-        const resetButton = cardElement.querySelector('.item-reset-button');
-        if (resetButton) {
-            resetButton.disabled = true;
-        }
-
-        cardElement.classList.add('updated-ok');
-        setTimeout(() => {
-            cardElement.classList.remove('updated-ok');
-        }, 800);
-
-    } catch (error) {
-        console.error(error);
-        alert('Não foi possível voltar o item para estoque. Tente novamente.');
-    }
-}
-
-async function toggleItemApproval(itemId, currentApproved, cardElement) {
-    const novoValor = !currentApproved;
-
-    const confirmMsg = novoValor
-        ? 'Aprovar este item para aparecer no site público?'
-        : 'Remover este item da listagem pública do site?';
-
-    if (!window.confirm(confirmMsg)) return;
-
-    try {
-        const response = await fetch(`/api/interno/itens/${itemId}/aprovar/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ aprovado: novoValor }),
-        });
-
-        if (!response.ok) {
-            throw new Error('Erro ao atualizar aprovação do item');
-        }
-
-        const data = await response.json();
-
-        // Atualiza array em memória
-        allItems = allItems.map(item => {
-            if (item.id === itemId) {
-                return { ...item, aprovado: data.aprovado };
-            }
-            return item;
-        });
-
-        // Atualiza também as reivindicações (se quiser olhar lá depois)
-        allClaims = allClaims.map(claim => {
-            if (claim.item.id === itemId) {
-                return {
-                    ...claim,
-                    item: {
-                        ...claim.item,
-                        aprovado: data.aprovado,
-                    },
-                };
-            }
-            return claim;
-        });
-
-        // Re-renderiza lista de itens respeitando os filtros
-        renderItemsList();
-        // E a de reivindicações (pra não ficar desatualizada)
-        renderClaims(getFilteredClaims());
-
-    } catch (error) {
-        console.error(error);
-        alert('Não foi possível atualizar a aprovação do item. Tente novamente.');
-    }
-}
-
-
-async function markItemAsReturned(itemId, cardElement) {
-    const confirmReturn = window.confirm(
-        'Confirmar devolução deste item ao dono? O status será marcado como "Devolvido".'
-    );
-    if (!confirmReturn) return;
+async function markItemAsReturned(itemId) {
+    if (!confirm('Marcar este item como devolvido?')) return;
 
     try {
         const response = await fetch(`/api/interno/itens/${itemId}/devolver/`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
         });
 
         if (!response.ok) {
@@ -583,122 +510,62 @@ async function markItemAsReturned(itemId, cardElement) {
 
         const data = await response.json();
 
-        // Atualizo label do item no card
-        const label = cardElement.querySelector('.claim-status-label span');
-        if (label && data.status) {
-            label.textContent = data.status;
-        }
+        // Atualiza array em memória
+        allItems = allItems.map((item) =>
+            item.id === itemId ? { ...item, status: data.status || 'Devolvido' } : item
+        );
 
-        // Atualiza arrays em memória
-        allItems = allItems.map(item => {
-            if (item.id === itemId) {
-                return {
-                    ...item,
-                    status: data.status,
-                };
-            }
-            return item;
-        });
-        renderItemsList();
-
-        allClaims = allClaims.map(claim => {
-            if (claim.item.id === itemId) {
+        // Atualiza também nas reivindicações
+        allClaims = allClaims.map((claim) => {
+            if (claim.item && claim.item.id === itemId) {
                 return {
                     ...claim,
-                    item: {
-                        ...claim.item,
-                        status: data.status,
-                    },
+                    item: { ...claim.item, status: data.status || 'Devolvido' },
                 };
             }
             return claim;
         });
+
+        renderItemsList();
         renderClaims(getFilteredClaims());
-
-        // Desabilita botão "Marcar como devolvido" desse card
-        const btn = cardElement.querySelector('.item-mark-returned-button');
-        if (btn) {
-            btn.disabled = true;
-        }
-
-        cardElement.classList.add('updated-ok');
-        setTimeout(() => {
-            cardElement.classList.remove('updated-ok');
-        }, 800);
-
     } catch (error) {
         console.error(error);
         alert('Não foi possível marcar o item como devolvido. Tente novamente.');
     }
 }
 
-// ----------------- Delegação de eventos -----------------
+async function resetItemToStock(itemId) {
+    if (!confirm('Voltar este item para "Em estoque"?')) return;
 
-// Reivindicações
-if (claimsListEl) {
-    claimsListEl.addEventListener('click', async (event) => {
-        const card = event.target.closest('.claim-card');
-        if (!card) return;
+    try {
+        const response = await fetch(`/api/interno/itens/${itemId}/back_to_stock/`, {
+            method: 'POST',
+        });
 
-        // 1) Salvar status da reivindicação
-        const saveButton = event.target.closest('.claim-save-button');
-        if (saveButton) {
-            const select = card.querySelector('.claim-status-select');
-            if (!select) return;
-
-            const claimId = Number(select.dataset.claimId);
-            const newStatus = select.value;
-            if (!claimId) return;
-
-            await updateClaimStatus(claimId, newStatus, card);
-            return;
+        if (!response.ok) {
+            throw new Error('Erro ao voltar item para estoque');
         }
 
-        // 2) Voltar item para estoque
-        const resetButton = event.target.closest('.item-reset-button');
-        if (resetButton) {
-            const itemId = Number(resetButton.dataset.itemId);
-            if (!itemId || resetButton.disabled) return;
+        const data = await response.json();
 
-            await resetItemToStock(itemId, card);
-        }
-    });
+        allItems = allItems.map((item) =>
+            item.id === itemId ? { ...item, status: data.status || 'Em estoque' } : item
+        );
+
+        allClaims = allClaims.map((claim) => {
+            if (claim.item && claim.item.id === itemId) {
+                return {
+                    ...claim,
+                    item: { ...claim.item, status: data.status || 'Em estoque' },
+                };
+            }
+            return claim;
+        });
+
+        renderItemsList();
+        renderClaims(getFilteredClaims());
+    } catch (error) {
+        console.error(error);
+        alert('Não foi possível voltar o item para estoque. Tente novamente.');
+    }
 }
-
-// Itens
-if (itemsListEl) {
-    itemsListEl.addEventListener('click', async (event) => {
-        const card = event.target.closest('.internal-item-card');
-        if (!card) return;
-
-        const itemId = Number(card.dataset.itemId);
-        if (!itemId) return;
-
-        const markReturnedBtn = event.target.closest('.item-mark-returned-button');
-        const resetBtn = event.target.closest('.item-reset-button');
-        const toggleApprovalBtn = event.target.closest('.item-toggle-approval-button');
-
-        if (markReturnedBtn && !markReturnedBtn.disabled) {
-            await markItemAsReturned(itemId, card);
-            return;
-        }
-
-        if (resetBtn && !resetBtn.disabled) {
-            await resetItemToStock(itemId, card);
-            return;
-        }
-
-        if (toggleApprovalBtn) {
-            const currentApproved = card.dataset.aprovado === 'true';
-            await toggleItemApproval(itemId, currentApproved, card);
-        }
-    });
-}
-
-
-// ----------------- Inicialização -----------------
-
-document.addEventListener('DOMContentLoaded', () => {
-    loadClaims();
-    loadItems();
-});

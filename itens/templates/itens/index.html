@@ -163,27 +163,46 @@
             </div>
 
             <form id="claimForm">
-                <div class="form-group">
-                    <label for="claimNome">Seu nome completo:</label>
-                    <input type="text" id="claimNome" required>
-                </div>
+    <div class="form-group">
+        <label for="claimNome">Seu nome completo:</label>
+        <input type="text" id="claimNome" required>
+    </div>
 
-                <div class="form-group">
-                    <label for="claimContato">Contato (e-mail, telefone ou matrícula):</label>
-                    <input type="text" id="claimContato">
-                </div>
+    <div class="form-group">
+        <label for="claimVinculo">Seu vínculo com a UnDF:</label>
+        <select id="claimVinculo">
+            <option value="">Selecione...</option>
+            <option value="Estudante">Estudante</option>
+            <option value="Servidor">Servidor</option>
+            <option value="Terceirizado">Terceirizado</option>
+            <option value="Visitante">Visitante</option>
+            <option value="Outro">Outro</option>
+        </select>
+    </div>
 
-                <div class="form-group">
-                    <label for="claimDetalhes">Detalhes que comprovam que o item é seu:</label>
-                    <textarea id="claimDetalhes" rows="3" required></textarea>
-                </div>
+    <div class="form-group">
+        <label for="claimIdentificacao">Matrícula / SIAPE / RG (opcional):</label>
+        <input type="text" id="claimIdentificacao">
+    </div>
 
-                <div class="modal-footer">
-                    <button type="submit">Enviar Reivindicação</button>
-                </div>
+    <div class="form-group">
+        <label for="claimContato">Contato (e-mail ou telefone):</label>
+        <input type="text" id="claimContato">
+    </div>
 
-                <p id="claimMessage" class="claim-message"></p>
-            </form>
+    <div class="form-group">
+        <label for="claimDetalhes">Detalhes que comprovam que o item é seu:</label>
+        <textarea id="claimDetalhes" rows="3" required></textarea>
+    </div>
+
+    <div class="modal-footer">
+        <button type="submit">Enviar Reivindicação</button>
+    </div>
+
+    <p id="claimMessage" class="claim-message"></p>
+</form>
+
+
         </div>
     </div>
 

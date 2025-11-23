@@ -145,7 +145,7 @@ def item_claim_create(request, item_id):
 
     Fluxo:
     - usuário externo seleciona um item na lista;
-    - preenche nome, contato e detalhes que comprovam que o item é dele;
+    - preenche nome, vínculo, identificação, contato e detalhes;
     - a equipe interna vê essa reivindicação no admin ou no painel interno.
     """
     item = get_object_or_404(Item, id=item_id)
@@ -158,7 +158,10 @@ def item_claim_create(request, item_id):
     nome = body.get("nome")
     contato = body.get("contato")
     detalhes = body.get("detalhes")
+    vinculo = body.get("vinculo")
+    identificacao = body.get("identificacao")
 
+    # nome e detalhes continuam obrigatórios
     if not (nome and detalhes):
         return HttpResponseBadRequest("Campos obrigatórios faltando")
 
@@ -167,6 +170,8 @@ def item_claim_create(request, item_id):
         nome_requerente=nome,
         contato=contato or "",
         detalhes=detalhes,
+        vinculo=vinculo or "",
+        identificacao=identificacao or "",
     )
 
     data = {
@@ -174,6 +179,7 @@ def item_claim_create(request, item_id):
         "mensagem": "Reivindicação registrada e enviada para análise da equipe interna.",
     }
     return JsonResponse(data, status=201)
+
 
 
 # ----------------- API interna (painel de reivindicações) -----------------
@@ -203,6 +209,8 @@ def internal_claims_list(request):
             "nome_requerente": rev.nome_requerente,
             "contato": rev.contato or "",
             "detalhes": rev.detalhes,
+            "vinculo": rev.vinculo or "",
+            "identificacao": rev.identificacao or "",
             "item": {
                 "id": rev.item.id,
                 "nome": rev.item.nome,
@@ -214,6 +222,7 @@ def internal_claims_list(request):
         })
 
     return JsonResponse(data, safe=False)
+
 
 
 @csrf_exempt

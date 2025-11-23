@@ -465,16 +465,20 @@ body {
 }
 
 .form-group input,
-.form-group textarea {
+.form-group textarea,
+.form-group select {
     padding: 10px 12px;
     border-radius: 12px;
     border: 1px solid var(--border-subtle);
     font-size: 0.9rem;
     outline: none;
-    resize: vertical;
     min-height: 40px;
     background: var(--white);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group textarea {
+    resize: vertical;
 }
 
 .form-group input:focus,

@@ -2,12 +2,11 @@
 // Achados e Perdidos - UnDF
 // Arquivo: internal.js
 //
-// Este script controla o painel interno de reivindicações.
-// Objetivo (pensando como estudante de CC):
-// - carregar todas as reivindicações via API interna;
-// - permitir filtrar por texto (nome, item, contato);
-// - atualizar o status (Pendente / Aprovada / Recusada);
-// - voltar item para 'Em estoque' em caso de erro interno.
+// Painel interno de reivindicações:
+// - lista todas as reivindicações;
+// - permite filtrar por nome, item, contato, vínculo ou identificação;
+// - permite atualizar status da reivindicação;
+// - permite voltar item para 'Em estoque' em caso de erro.
 // ============================================================
 
 let allClaims = [];
@@ -49,6 +48,11 @@ function createClaimCard(claim) {
 
     const canResetItem = claim.item.status !== 'Em estoque';
 
+    const vinculoLabel = claim.vinculo ? ` (${claim.vinculo})` : '';
+    const identificacaoLabel = claim.identificacao
+        ? ` — ID: ${escapeHtml(claim.identificacao)}`
+        : '';
+
     return `
         <div class="item-card claim-card" data-claim-id="${claim.id}">
             <div class="claim-main">
@@ -59,8 +63,11 @@ function createClaimCard(claim) {
                 </p>
                 <p>
                     <strong>Requerente:</strong>
-                    ${escapeHtml(claim.nome_requerente)}
-                    ${claim.contato ? ` — ${escapeHtml(claim.contato)}` : ''}
+                    ${escapeHtml(claim.nome_requerente)}${vinculoLabel}${identificacaoLabel}
+                </p>
+                <p class="claim-details">
+                    <strong>Contato:</strong>
+                    ${escapeHtml(claim.contato || 'não informado')}
                 </p>
                 <p class="claim-details">
                     <strong>Detalhes informados:</strong>
@@ -134,12 +141,16 @@ function getFilteredClaims() {
         const local = (claim.item.local_encontrado || '').toLowerCase();
         const nome = (claim.nome_requerente || '').toLowerCase();
         const contato = (claim.contato || '').toLowerCase();
+        const vinculo = (claim.vinculo || '').toLowerCase();
+        const identificacao = (claim.identificacao || '').toLowerCase();
 
         return (
             itemName.includes(term) ||
             local.includes(term) ||
             nome.includes(term) ||
-            contato.includes(term)
+            contato.includes(term) ||
+            vinculo.includes(term) ||
+            identificacao.includes(term)
         );
     });
 }

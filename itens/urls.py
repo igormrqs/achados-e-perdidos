@@ -13,7 +13,7 @@ urlpatterns = [
     path('api/itens/<int:item_id>/', views.item_mark_returned, name='item_mark_returned'),
     path('api/itens/<int:item_id>/claim/', views.item_claim_create, name='item_claim_create'),
 
-   # APIs internas (reivindicações)
+      # APIs internas (reivindicações)
     path('api/interno/reivindicacoes/', views.internal_claims_list, name='internal_claims_list'),
     path('api/interno/reivindicacoes/<int:claim_id>/status/', views.internal_claim_update_status, name='internal_claim_update_status'),
 

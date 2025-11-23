@@ -40,7 +40,7 @@ def internal_dashboard(request):
     Painel simples para uso interno (colaborador).
 
     Nesta página vou consumir APIs internas para listar e atualizar
-    as reivindicações de itens.
+    as reivindicações de itens e os itens cadastrados.
     """
     return render(request, "itens/internal_dashboard.html")
 
@@ -122,10 +122,10 @@ def item_list_create(request):
 @require_http_methods(["DELETE"])
 def item_mark_returned(request, item_id):
     """
-    Marca um item como 'Devolvido' (pensado para uso interno).
+    Marca um item como 'Devolvido' (API pública, pensada para uso futuro).
 
-    No site público ainda não chamamos isso, mas está pronto
-    para ser usado pelo painel interno no futuro.
+    Hoje o fluxo de devolução é feito via painel interno, pela
+    internal_item_mark_returned.
     """
     item = get_object_or_404(Item, id=item_id)
     item.status = "Devolvido"
@@ -181,7 +181,6 @@ def item_claim_create(request, item_id):
     return JsonResponse(data, status=201)
 
 
-
 # ----------------- API interna (painel de reivindicações) -----------------
 
 
@@ -224,7 +223,6 @@ def internal_claims_list(request):
     return JsonResponse(data, safe=False)
 
 
-
 @csrf_exempt
 @require_http_methods(["POST"])
 def internal_claim_update_status(request, claim_id):
@@ -260,6 +258,9 @@ def internal_claim_update_status(request, claim_id):
         "status": rev.status,
         "item_status": item.status,
     })
+
+
+# ----------------- API interna (painel de itens) -----------------
 
 
 @csrf_exempt

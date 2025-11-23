@@ -205,8 +205,14 @@ function createItemCard(item) {
     const canBackToStock = item.status !== 'Em estoque';
     const canMarkReturned = item.status !== 'Devolvido';
 
+    const approvalButtonLabel = item.aprovado
+        ? 'Retirar do site'
+        : 'Aprovar para aparecer no site';
+
     return `
-        <div class="item-card claim-card internal-item-card" data-item-id="${item.id}">
+        <div class="item-card claim-card internal-item-card"
+             data-item-id="${item.id}"
+             data-aprovado="${item.aprovado ? 'true' : 'false'}">
             <div class="claim-main">
                 <h3>${escapeHtml(item.nome)}</h3>
                 <p class="item-location">
@@ -217,7 +223,7 @@ function createItemCard(item) {
                     <strong>Categoria:</strong>
                     ${escapeHtml(item.categoria || 'não informado')}
                 </p>
-                <p class="claim-details">
+                <p class="claim-details item-approval-text">
                     <strong>Aprovação:</strong>
                     ${aprovacaoTexto}
                 </p>
@@ -226,6 +232,14 @@ function createItemCard(item) {
                 <p class="claim-status-label">
                     Status do item: <span>${item.status}</span>
                 </p>
+
+                <button
+                    type="button"
+                    class="item-approval-button item-toggle-approval-button"
+                    data-item-id="${item.id}"
+                >
+                    ${approvalButtonLabel}
+                </button>
 
                 <button
                     type="button"
@@ -248,6 +262,7 @@ function createItemCard(item) {
         </div>
     `;
 }
+
 
 function getFilteredItems() {
     let result = [...allItems];
@@ -490,6 +505,64 @@ async function resetItemToStock(itemId, cardElement) {
     }
 }
 
+async function toggleItemApproval(itemId, currentApproved, cardElement) {
+    const novoValor = !currentApproved;
+
+    const confirmMsg = novoValor
+        ? 'Aprovar este item para aparecer no site público?'
+        : 'Remover este item da listagem pública do site?';
+
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+        const response = await fetch(`/api/interno/itens/${itemId}/aprovar/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ aprovado: novoValor }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Erro ao atualizar aprovação do item');
+        }
+
+        const data = await response.json();
+
+        // Atualiza array em memória
+        allItems = allItems.map(item => {
+            if (item.id === itemId) {
+                return { ...item, aprovado: data.aprovado };
+            }
+            return item;
+        });
+
+        // Atualiza também as reivindicações (se quiser olhar lá depois)
+        allClaims = allClaims.map(claim => {
+            if (claim.item.id === itemId) {
+                return {
+                    ...claim,
+                    item: {
+                        ...claim.item,
+                        aprovado: data.aprovado,
+                    },
+                };
+            }
+            return claim;
+        });
+
+        // Re-renderiza lista de itens respeitando os filtros
+        renderItemsList();
+        // E a de reivindicações (pra não ficar desatualizada)
+        renderClaims(getFilteredClaims());
+
+    } catch (error) {
+        console.error(error);
+        alert('Não foi possível atualizar a aprovação do item. Tente novamente.');
+    }
+}
+
+
 async function markItemAsReturned(itemId, cardElement) {
     const confirmReturn = window.confirm(
         'Confirmar devolução deste item ao dono? O status será marcado como "Devolvido".'
@@ -603,6 +676,7 @@ if (itemsListEl) {
 
         const markReturnedBtn = event.target.closest('.item-mark-returned-button');
         const resetBtn = event.target.closest('.item-reset-button');
+        const toggleApprovalBtn = event.target.closest('.item-toggle-approval-button');
 
         if (markReturnedBtn && !markReturnedBtn.disabled) {
             await markItemAsReturned(itemId, card);
@@ -611,9 +685,16 @@ if (itemsListEl) {
 
         if (resetBtn && !resetBtn.disabled) {
             await resetItemToStock(itemId, card);
+            return;
+        }
+
+        if (toggleApprovalBtn) {
+            const currentApproved = card.dataset.aprovado === 'true';
+            await toggleItemApproval(itemId, currentApproved, card);
         }
     });
 }
+
 
 // ----------------- Inicialização -----------------
 

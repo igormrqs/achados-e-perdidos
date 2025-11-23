@@ -666,6 +666,31 @@ button[type="submit"]:active {
     transition: background 0.2s ease, box-shadow 0.15s ease, transform 0.1s ease, opacity 0.2s ease;
 }
 
+/* botão para aprovar / retirar item do site */
+.item-approval-button {
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid #0ea5e9;
+    background: #e0f2fe;
+    color: #0369a1;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.2s ease, box-shadow 0.15s ease, transform 0.1s ease;
+    width: 100%;
+}
+
+.item-approval-button:hover {
+    background: #bfdbfe;
+    box-shadow: 0 6px 14px rgba(37, 99, 235, 0.25);
+    transform: translateY(-1px);
+}
+
+.item-approval-button:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+
 .item-reset-button:hover:not(:disabled) {
     background: #fed7aa;
     box-shadow: 0 6px 14px rgba(248, 153, 80, 0.35);

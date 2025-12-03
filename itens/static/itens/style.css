@@ -1202,107 +1202,91 @@ body.internal-theme .search-bar::placeholder {
 }
 
 /* ============================================================
-   RESPONSIVIDADE (Correção para Celular)
+   RESPONSIVIDADE: Menu Mobile "App Style" (Horizontal Compacto)
    ============================================================ */
 
 @media (max-width: 900px) {
-    /* 1. Muda a direção da página de 'lado a lado' para 'coluna' */
-    body {
-        overflow: auto; /* Permite rolar a página inteira */
-        height: auto;
-    }
+    /* Ajuste Geral da Página */
+    body { overflow: auto; height: auto; }
+    .container { flex-direction: column; padding: 0; gap: 0; height: auto; }
 
-    .container {
-        flex-direction: column;
-        padding: 0;
-        height: auto;
-        gap: 0;
-    }
-
-    /* 2. Transforma a Sidebar em Menu Superior (Topbar) */
+    /* 1. BARRA SUPERIOR (Sidebar vira Topbar Compacta) */
     .sidebar {
         width: 100%;
-        height: auto;
+        height: 60px; /* Altura fixa bem pequena */
         flex-direction: row; /* Itens lado a lado */
-        align-items: center;
-        justify-content: space-between;
-        padding: 16px 20px;
-        border-radius: 0 0 24px 24px; /* Arredonda só embaixo */
-        position: sticky; /* Cola no topo */
+        align-items: center; /* Centraliza verticalmente */
+        justify-content: flex-start; /* Alinha tudo à esquerda */
+        padding: 0 16px; /* Espaçamento lateral */
+        border-radius: 0; /* Remove curvas para colar no topo */
+        position: sticky; /* Cola no topo da tela */
         top: 0;
         z-index: 100;
-        flex-wrap: wrap;
         gap: 12px;
+        background: #020617; /* Fundo escuro sólido */
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5); /* Sombra para destacar do conteúdo */
+        border-bottom: 1px solid rgba(255,255,255,0.05);
     }
 
-    .logo {
-        margin-bottom: 0;
-        flex-direction: row;
-        align-items: center;
-    }
+    /* 2. LOGO OTIMIZADA (Esconde texto, mantém ícone) */
+    .logo { margin: 0; padding: 0; min-width: auto; }
+    .logo h1 { display: none; } /* Oculta "Painel Interno" para salvar espaço */
+    .logo-icon { padding: 4px; background: transparent; }
+    .logo img { max-height: 32px; width: auto; } /* Ícone pequeno */
+    .footer-sidebar { display: none; }
 
-    .footer-sidebar {
-        display: none; /* Esconde o rodapé do menu no celular */
-    }
-
-    .logo img {
-        max-height: 40px;
-        width: auto;
-    }
-    
-    .logo h1 {
-        font-size: 0.9rem;
-    }
-
-    /* 3. Ajusta os botões do menu para rolarem horizontalmente */
+    /* 3. MENU DE ROLAGEM HORIZONTAL */
     .menu {
-        width: 100%;
         flex-direction: row;
-        overflow-x: auto; /* Scroll horizontal se não couber */
-        padding-bottom: 5px;
-        margin-top: 5px;
+        margin: 0;
+        width: auto;
+        flex: 1; /* Ocupa todo o espaço restante ao lado da logo */
+        overflow-x: auto; /* Permite rolar para os lados com o dedo */
+        gap: 8px;
+        align-items: center;
+        /* Esconde a barra de rolagem visualmente */
+        scrollbar-width: none; /* Firefox */
     }
+    .menu::-webkit-scrollbar { display: none; /* Chrome/Safari */ }
 
+    /* Botões do Menu (Estilo "Pílula" Pequena) */
     .menu-item {
-        white-space: nowrap; /* Não quebra o texto do botão */
+        white-space: nowrap; /* Impede que o texto quebre linha */
+        padding: 6px 14px;
         font-size: 0.85rem;
-        padding: 8px 16px;
-    }
-
-    /* 4. Ajusta o conteúdo principal */
-    .content {
-        border-radius: 24px 24px 0 0;
-        margin-top: -15px; /* Sobe um pouco para encaixar visualmente */
-        padding: 20px;
-        min-height: 80vh;
-    }
-
-    /* 5. Conserta os Cards "quebrados" */
-    .item-card, .internal-item-card, .claim-card {
-        flex-direction: column; /* Empilha: texto em cima, botões embaixo */
-        align-items: flex-start;
-        gap: 16px;
-    }
-
-    .claim-main {
-        width: 100%;
-        padding-right: 0;
-    }
-
-    .claim-actions {
-        width: 100%;
-        align-items: stretch; /* Botões esticam a largura toda */
-        flex-direction: row;
-        flex-wrap: wrap;
-    }
-
-    .claim-actions > * {
-        flex: 1; /* Botões dividem o espaço igualmente */
-        text-align: center;
+        background: rgba(255,255,255,0.08); /* Fundo sutil */
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 999px;
+        height: 36px; /* Altura uniforme */
+        display: flex;
+        align-items: center;
+        color: #94a3b8;
     }
     
-    /* 6. Formulário em uma coluna só */
-    .form-grid {
-        grid-template-columns: 1fr;
+    .menu-item.active {
+        background: var(--primary);
+        color: #fff;
+        border-color: var(--primary);
+        box-shadow: 0 2px 10px rgba(14, 165, 233, 0.3);
     }
+
+    /* 4. CONTEÚDO PRINCIPAL */
+    .content {
+        border-radius: 0; 
+        margin: 0;
+        padding: 20px 16px; /* Espaço lateral confortável */
+        min-height: calc(100vh - 60px); /* Ocupa o resto da tela */
+        box-shadow: none; /* Remove sombra interna no mobile */
+    }
+
+    /* 5. AJUSTES INTERNOS (Cards e Forms para não quebrar) */
+    .form-grid { grid-template-columns: 1fr; }
+    
+    .search-container { flex-direction: column; gap: 10px; }
+    .search-container > div { width: 100%; }
+
+    .item-card, .internal-item-card, .claim-card { flex-direction: column; gap: 16px; }
+    .claim-main, .claim-actions { width: 100%; padding: 0; }
+    .claim-actions { flex-direction: row; flex-wrap: wrap; }
+    .claim-actions > * { flex: 1; text-align: center; }
 }

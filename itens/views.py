@@ -18,6 +18,27 @@ from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from .models import Item, Reivindicacao
 
 
+# Helper para manter o formato de item consistente nas APIs internas
+def serialize_item(item: Item) -> dict:
+    """
+    Converte um objeto Item em dicionário pronto para JSON.
+
+    Uso em:
+    - lista interna de itens;
+    - criação/edição interna de itens.
+    """
+    return {
+        "id": item.id,
+        "nome": item.nome,
+        "status": item.status,
+        "aprovado": item.aprovado,
+        "local_encontrado": item.local_encontrado or "",
+        "data_encontrado": item.data_encontrado.isoformat(),
+        "categoria": item.categoria or "",
+        "descricao": item.descricao or "",
+    }
+
+
 # ----------------- Páginas HTML -----------------
 
 
@@ -37,10 +58,11 @@ def home(request):
 @ensure_csrf_cookie
 def internal_dashboard(request):
     """
-    Painel simples para uso interno (colaborador).
+    Painel interno (colaborador da UnDF).
 
-    Nesta página vou consumir APIs internas para listar e atualizar
-    as reivindicações de itens e os itens cadastrados.
+    Nesta página vou consumir APIs internas para:
+    - listar/atualizar reivindicações;
+    - listar, cadastrar e editar itens.
     """
     return render(request, "itens/internal_dashboard.html")
 
@@ -52,7 +74,7 @@ def internal_dashboard(request):
 @require_http_methods(["GET", "POST"])
 def item_list_create(request):
     """
-    API simples para lista/criação de itens.
+    API simples para lista/criação de itens (lado público).
 
     GET  -> retorna itens em estoque E aprovados, em JSON.
     POST -> cria um novo item vindo de uma futura interface interna
@@ -260,7 +282,7 @@ def internal_claim_update_status(request, claim_id):
     })
 
 
-# ----------------- API interna (painel de itens) -----------------
+# ----------------- API interna (itens) -----------------
 
 
 @csrf_exempt
@@ -273,21 +295,117 @@ def internal_items_list(request):
     para o JavaScript no painel interno.
     """
     itens = Item.objects.order_by("-data_encontrado", "-data_criacao")
-
-    data = []
-    for item in itens:
-        data.append({
-            "id": item.id,
-            "nome": item.nome,
-            "status": item.status,
-            "aprovado": item.aprovado,
-            "local_encontrado": item.local_encontrado or "",
-            "data_encontrado": item.data_encontrado.isoformat(),
-            "categoria": item.categoria or "",
-            "descricao": item.descricao or "",
-        })
-
+    data = [serialize_item(item) for item in itens]
     return JsonResponse(data, safe=False)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def internal_item_create(request):
+    """
+    Uso interno: cadastra um novo item via painel.
+
+    Campos esperados (JSON):
+    - nome (obrigatório)
+    - local_encontrado (obrigatório)
+    - data_encontrado (obrigatório, 'YYYY-MM-DD')
+    - categoria (opcional)
+    - descricao (opcional)
+    - aprovado (opcional, bool)
+    """
+    try:
+        body = json.loads(request.body.decode("utf-8"))
+    except json.JSONDecodeError:
+        return HttpResponseBadRequest("JSON inválido")
+
+    nome = (body.get("nome") or "").strip()
+    local_encontrado = (body.get("local_encontrado") or "").strip()
+    data_str = (body.get("data_encontrado") or "").strip()
+
+    if not (nome and local_encontrado and data_str):
+        return HttpResponseBadRequest("Campos obrigatórios faltando")
+
+    try:
+        data_encontrado = datetime.strptime(data_str, "%Y-%m-%d").date()
+    except ValueError:
+        return HttpResponseBadRequest("Formato de data inválido")
+
+    categoria = (body.get("categoria") or "").strip()
+    descricao = (body.get("descricao") or "").strip()
+    aprovado_raw = body.get("aprovado")
+
+    if isinstance(aprovado_raw, bool):
+        aprovado = aprovado_raw
+    else:
+        aprovado = False
+
+    item = Item.objects.create(
+        nome=nome,
+        local_encontrado=local_encontrado,
+        data_encontrado=data_encontrado,
+        categoria=categoria or None,
+        descricao=descricao or None,
+        aprovado=aprovado,
+        # status padrão é "Em estoque"
+    )
+
+    return JsonResponse(serialize_item(item), status=201)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def internal_item_update(request, item_id):
+    """
+    Uso interno: edita campos de um item existente.
+
+    Aceita JSON parcial. Campos aceitos:
+    - nome
+    - local_encontrado
+    - data_encontrado
+    - categoria
+    - descricao
+    - aprovado (bool)
+    """
+    try:
+        body = json.loads(request.body.decode("utf-8"))
+    except json.JSONDecodeError:
+        return HttpResponseBadRequest("JSON inválido")
+
+    item = get_object_or_404(Item, id=item_id)
+
+    if "nome" in body:
+        nome = (body.get("nome") or "").strip()
+        if nome:
+            item.nome = nome
+
+    if "local_encontrado" in body:
+        local_encontrado = (body.get("local_encontrado") or "").strip()
+        if local_encontrado:
+            item.local_encontrado = local_encontrado
+
+    if "data_encontrado" in body:
+        data_str = (body.get("data_encontrado") or "").strip()
+        if data_str:
+            try:
+                item.data_encontrado = datetime.strptime(data_str, "%Y-%m-%d").date()
+            except ValueError:
+                return HttpResponseBadRequest("Formato de data inválido")
+
+    if "categoria" in body:
+        categoria = (body.get("categoria") or "").strip()
+        item.categoria = categoria or None
+
+    if "descricao" in body:
+        descricao = (body.get("descricao") or "").strip()
+        item.descricao = descricao or None
+
+    if "aprovado" in body:
+        aprovado_raw = body.get("aprovado")
+        if isinstance(aprovado_raw, bool):
+            item.aprovado = aprovado_raw
+
+    item.save()
+    return JsonResponse(serialize_item(item))
 
 
 @csrf_exempt
@@ -304,62 +422,6 @@ def internal_item_mark_returned(request, item_id):
     return JsonResponse({
         "id": item.id,
         "status": item.status,
-    })
-
-
-@csrf_exempt
-@require_http_methods(["GET"])
-def internal_items_list(request):
-    """
-    Retorna todos os itens cadastrados para uso interno no painel.
-
-    Aqui não filtro por status ou aprovação, deixo a filtragem
-    para o JavaScript no painel interno.
-    """
-    itens = Item.objects.order_by("-data_encontrado", "-data_criacao")
-
-    data = []
-    for item in itens:
-        data.append({
-            "id": item.id,
-            "nome": item.nome,
-            "status": item.status,
-            "aprovado": item.aprovado,
-            "local_encontrado": item.local_encontrado or "",
-            "data_encontrado": item.data_encontrado.isoformat(),
-            "categoria": item.categoria or "",
-            "descricao": item.descricao or "",
-        })
-
-    return JsonResponse(data, safe=False)
-
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def internal_item_update_approval(request, item_id):
-    """
-    Uso interno: atualiza o campo 'aprovado' de um item.
-
-    Quando 'aprovado=True', o item passa a aparecer na lista pública
-    (desde que também esteja com status 'Em estoque').
-    """
-    try:
-        body = json.loads(request.body.decode("utf-8"))
-    except json.JSONDecodeError:
-        return HttpResponseBadRequest("JSON inválido")
-
-    aprovado = body.get("aprovado")
-    # espero um booleano verdadeiro/falso do JSON
-    if not isinstance(aprovado, bool):
-        return HttpResponseBadRequest("Campo 'aprovado' deve ser booleano.")
-
-    item = get_object_or_404(Item, id=item_id)
-    item.aprovado = aprovado
-    item.save(update_fields=["aprovado"])
-
-    return JsonResponse({
-        "id": item.id,
-        "aprovado": item.aprovado,
     })
 
 
@@ -382,4 +444,3 @@ def internal_item_back_to_stock(request, item_id):
         "id": item.id,
         "status": item.status,
     })
-

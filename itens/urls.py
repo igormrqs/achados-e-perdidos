@@ -19,6 +19,8 @@ urlpatterns = [
 
     # APIs internas (itens)
     path('api/interno/itens/', views.internal_items_list, name='internal_items_list'),
-    path('api/interno/itens/<int:item_id>/aprovar/', views.internal_item_update_approval, name='internal_item_update_approval'),
+    path('api/interno/itens/novo/', views.internal_item_create, name='internal_item_create'),
+    path('api/interno/itens/<int:item_id>/editar/', views.internal_item_update, name='internal_item_update'),
+    path('api/interno/itens/<int:item_id>/devolver/', views.internal_item_mark_returned, name='internal_item_mark_returned'),
     path('api/interno/itens/<int:item_id>/back_to_stock/', views.internal_item_back_to_stock, name='internal_item_back_to_stock'),
 ]

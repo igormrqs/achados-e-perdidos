@@ -59,9 +59,66 @@
             <section id="tab-itens" class="tab-content hidden">
                 <div class="tab-header">
                     <h2>Itens cadastrados</h2>
-                    <p>Gerencie os itens em estoque, reivindicados e devolvidos.</p>
+                    <p>Cadastre novos itens encontrados e edite itens existentes. Para editar, clique em um item da lista.</p>
                 </div>
 
+                <!-- Formulário de cadastro/edição -->
+                <div class="form-card internal-form-card">
+                    <div class="form-header">
+                        <h3 id="itemFormTitle">Cadastrar novo item</h3>
+                        <p>
+                            Preencha os campos abaixo para registrar um item encontrado na UnDF.
+                            Para editar, clique em um item da lista de itens cadastrados.
+                        </p>
+                    </div>
+
+                    <form id="itemForm" class="form-grid">
+                        <div class="form-group">
+                            <label for="itemNome">Nome do item *</label>
+                            <input type="text" id="itemNome" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="itemLocal">Local onde foi encontrado *</label>
+                            <input type="text" id="itemLocal" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="itemData">Data em que foi encontrado *</label>
+                            <input type="date" id="itemData" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="itemCategoria">Categoria</label>
+                            <input type="text" id="itemCategoria" placeholder="Ex.: Carteira, Chave, Documento">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="itemDescricao">Descrição (opcional)</label>
+                            <textarea id="itemDescricao" rows="3" placeholder="Ex.: Carteira marrom com zíper, marca X."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="itemAprovado">
+                                Aprovar para aparecer no site público
+                            </label>
+                        </div>
+                    </form>
+
+                    <div class="form-actions">
+                        <button type="submit" form="itemForm">
+                            Salvar item
+                        </button>
+                        <button type="button" id="itemFormClearButton" class="secondary-button">
+                            Limpar formulário
+                        </button>
+                    </div>
+
+                    <p id="itemFormMessage" class="info-text"></p>
+                </div>
+
+                <!-- Filtros e lista de itens -->
                 <div class="search-container">
                     <label for="searchItems">Buscar por nome, local ou categoria:</label>
                     <input

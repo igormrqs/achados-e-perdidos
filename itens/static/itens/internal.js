@@ -7,14 +7,16 @@
 // - filtros de busca;
 // - mudança de status das reivindicações;
 // - controle de estoque (devolvido / voltar para estoque);
+// - cadastro e edição de itens (formulário);
 // - troca de abas no painel.
 // ============================================================
 
-// Arrays em memória para eu poder filtrar sem ficar batendo na API
+// Estado em memória
 let allClaims = [];
 let allItems = [];
+let currentEditingItemId = null;
 
-// Referências globais aos elementos do DOM (vou preencher no DOMContentLoaded)
+// Referências de DOM
 let claimsListEl;
 let itemsListEl;
 let searchClaimsInput;
@@ -22,9 +24,19 @@ let searchItemsInput;
 let statusFilter;
 let approvalFilter;
 
-// ------------------------------------------------------------
-// Inicialização
-// ------------------------------------------------------------
+// Form de item
+let itemForm;
+let itemFormTitle;
+let itemFormMessage;
+let itemNomeInput;
+let itemLocalInput;
+let itemDataInput;
+let itemCategoriaInput;
+let itemDescricaoInput;
+let itemAprovadoInput;
+let itemFormClearButton;
+
+// ----------------- Inicialização -----------------
 
 document.addEventListener('DOMContentLoaded', () => {
     // Pega os elementos do HTML
@@ -34,6 +46,17 @@ document.addEventListener('DOMContentLoaded', () => {
     searchItemsInput = document.getElementById('searchItems');
     statusFilter = document.getElementById('filterStatus');
     approvalFilter = document.getElementById('filterAprovado');
+
+    itemForm = document.getElementById('itemForm');
+    itemFormTitle = document.getElementById('itemFormTitle');
+    itemFormMessage = document.getElementById('itemFormMessage');
+    itemNomeInput = document.getElementById('itemNome');
+    itemLocalInput = document.getElementById('itemLocal');
+    itemDataInput = document.getElementById('itemData');
+    itemCategoriaInput = document.getElementById('itemCategoria');
+    itemDescricaoInput = document.getElementById('itemDescricao');
+    itemAprovadoInput = document.getElementById('itemAprovado');
+    itemFormClearButton = document.getElementById('itemFormClearButton');
 
     setupTabs();
 
@@ -63,12 +86,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Delegação de eventos para botões dentro da lista de reivindicações
+    // Submissão do formulário de item (criar/editar)
+    if (itemForm) {
+        itemForm.addEventListener('submit', onItemFormSubmit);
+    }
+
+    if (itemFormClearButton) {
+        itemFormClearButton.addEventListener('click', () => {
+            clearItemForm();
+        });
+    }
+
+    // Delegação de eventos para listas
     if (claimsListEl) {
         claimsListEl.addEventListener('click', onClaimsListClick);
     }
 
-    // Delegação de eventos para botões dentro da lista de itens
     if (itemsListEl) {
         itemsListEl.addEventListener('click', onItemsListClick);
     }
@@ -78,9 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadItems();
 });
 
-// ------------------------------------------------------------
-// Troca de abas (Reivindicações / Itens cadastrados)
-// ------------------------------------------------------------
+// ----------------- Tabs internas -----------------
 
 function setupTabs() {
     const menuButtons = document.querySelectorAll('.menu-item');
@@ -106,11 +137,8 @@ function setupTabs() {
     });
 }
 
-// ------------------------------------------------------------
-// Helpers gerais
-// ------------------------------------------------------------
+// ----------------- Helpers gerais -----------------
 
-// Função simples só pra não correr risco de XSS caso uma string venha do backend
 function escapeHtml(str) {
     if (!str) return '';
     return String(str)
@@ -121,7 +149,6 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
-// Converte 'YYYY-MM-DD' para 'dd/mm/aaaa'
 function formatDate(isoDate) {
     if (!isoDate) return '';
     const parts = isoDate.split('-');
@@ -130,9 +157,12 @@ function formatDate(isoDate) {
     return `${day}/${month}/${year}`;
 }
 
-// ------------------------------------------------------------
-// Carregamento de dados via API
-// ------------------------------------------------------------
+function showInfoMessage(targetElement, text) {
+    if (!targetElement) return;
+    targetElement.innerHTML = `<p class="info-text">${escapeHtml(text)}</p>`;
+}
+
+// ----------------- Carregamento de dados via API -----------------
 
 async function loadClaims() {
     if (!claimsListEl) return;
@@ -146,11 +176,10 @@ async function loadClaims() {
         renderClaims(getFilteredClaims());
     } catch (error) {
         console.error(error);
-        claimsListEl.innerHTML = `
-            <p class="info-text">
-                Não foi possível carregar as reivindicações no momento.
-            </p>
-        `;
+        showInfoMessage(
+            claimsListEl,
+            'Não foi possível carregar as reivindicações no momento.'
+        );
     }
 }
 
@@ -166,17 +195,23 @@ async function loadItems() {
         renderItemsList();
     } catch (error) {
         console.error(error);
-        itemsListEl.innerHTML = `
-            <p class="info-text">
-                Não foi possível carregar a lista de itens cadastrados.
-            </p>
-        `;
+        showInfoMessage(
+            itemsListEl,
+            'Não foi possível carregar a lista de itens cadastrados.'
+        );
     }
 }
 
-// ------------------------------------------------------------
-// Filtro e render das REIVINDICAÇÕES
-// ------------------------------------------------------------
+// ===========================================================
+// REIVINDICAÇÕES
+// ===========================================================
+
+const CLAIM_STATUS_OPTIONS = [
+    'Pendente',
+    'Em análise',
+    'Aprovada',
+    'Recusada',
+];
 
 function getFilteredClaims() {
     let result = [...allClaims];
@@ -192,7 +227,6 @@ function getFilteredClaims() {
             const itemNome = (claim.item?.nome || '').toLowerCase();
             const idStr = String(claim.id || '');
 
-            // Procuro termo em vários campos
             return (
                 nome.includes(term) ||
                 contato.includes(term) ||
@@ -212,25 +246,16 @@ function renderClaims(claims) {
     if (!claimsListEl) return;
 
     if (!claims || !claims.length) {
-        claimsListEl.innerHTML = `
-            <p class="info-text">
-                Nenhuma reivindicação registrada até o momento.
-            </p>
-        `;
+        showInfoMessage(
+            claimsListEl,
+            'Nenhuma reivindicação registrada até o momento.'
+        );
         return;
     }
 
     const html = claims.map(createClaimCard).join('');
     claimsListEl.innerHTML = html;
 }
-
-// Aqui eu defino os status possíveis para o select
-const CLAIM_STATUS_OPTIONS = [
-    'Pendente',
-    'Em análise',
-    'Aprovada',
-    'Recusada',
-];
 
 function createClaimCard(claim) {
     const item = claim.item || {};
@@ -296,10 +321,6 @@ function createClaimCard(claim) {
         </div>
     `;
 }
-
-// ------------------------------------------------------------
-// Ações na lista de reivindicações
-// ------------------------------------------------------------
 
 async function onClaimsListClick(event) {
     const card = event.target.closest('.internal-claim-card');
@@ -371,9 +392,9 @@ async function updateClaimStatus(claimId, itemId, newStatus) {
     }
 }
 
-// ------------------------------------------------------------
-// Filtro e render dos ITENS (aba "Itens cadastrados")
-// ------------------------------------------------------------
+// ===========================================================
+// ITENS (aba "Itens cadastrados")
+// ===========================================================
 
 function getFilteredItems() {
     let result = [...allItems];
@@ -410,11 +431,10 @@ function renderItemsList() {
     const items = getFilteredItems();
 
     if (!items || !items.length) {
-        itemsListEl.innerHTML = `
-            <p class="info-text">
-                Nenhum item cadastrado corresponde aos filtros selecionados.
-            </p>
-        `;
+        showInfoMessage(
+            itemsListEl,
+            'Nenhum item cadastrado corresponde aos filtros selecionados.'
+        );
         return;
     }
 
@@ -472,9 +492,127 @@ function createInternalItemCard(item) {
     `;
 }
 
-// ------------------------------------------------------------
-// Ações na aba de ITENS
-// ------------------------------------------------------------
+// ---------- Formulário de item (criar/editar) ----------
+
+function setFormMode(mode, item = null) {
+    if (!itemFormTitle) return;
+
+    if (mode === 'edit' && item) {
+        itemFormTitle.textContent = `Editar item #${item.id}`;
+    } else {
+        itemFormTitle.textContent = 'Cadastrar novo item';
+    }
+}
+
+function clearItemForm(showMessage = false) {
+    currentEditingItemId = null;
+    setFormMode('create');
+
+    if (itemNomeInput) itemNomeInput.value = '';
+    if (itemLocalInput) itemLocalInput.value = '';
+    if (itemDataInput) itemDataInput.value = '';
+    if (itemCategoriaInput) itemCategoriaInput.value = '';
+    if (itemDescricaoInput) itemDescricaoInput.value = '';
+    if (itemAprovadoInput) itemAprovadoInput.checked = false;
+
+    if (itemFormMessage) {
+        itemFormMessage.textContent = showMessage
+            ? 'Formulário limpo. Pronto para um novo cadastro.'
+            : '';
+    }
+}
+
+function startEditingItem(itemId) {
+    const item = allItems.find((it) => it.id === itemId);
+    if (!item) return;
+
+    currentEditingItemId = itemId;
+    setFormMode('edit', item);
+
+    if (itemNomeInput) itemNomeInput.value = item.nome || '';
+    if (itemLocalInput) itemLocalInput.value = item.local_encontrado || '';
+    if (itemDataInput) itemDataInput.value = item.data_encontrado || '';
+    if (itemCategoriaInput) itemCategoriaInput.value = item.categoria || '';
+    if (itemDescricaoInput) itemDescricaoInput.value = item.descricao || '';
+    if (itemAprovadoInput) itemAprovadoInput.checked = !!item.aprovado;
+
+    if (itemFormMessage) {
+        itemFormMessage.textContent = 'Editando item existente. Após ajustar os dados, clique em "Salvar item".';
+    }
+}
+
+async function onItemFormSubmit(event) {
+    event.preventDefault();
+
+    const nome = (itemNomeInput?.value || '').trim();
+    const local_encontrado = (itemLocalInput?.value || '').trim();
+    const data_encontrado = (itemDataInput?.value || '').trim();
+    const categoria = (itemCategoriaInput?.value || '').trim();
+    const descricao = (itemDescricaoInput?.value || '').trim();
+    const aprovado = !!(itemAprovadoInput && itemAprovadoInput.checked);
+
+    if (!nome || !local_encontrado || !data_encontrado) {
+        if (itemFormMessage) {
+            itemFormMessage.textContent = 'Por favor, preencha nome, local e data do item.';
+        }
+        return;
+    }
+
+    const payload = {
+        nome,
+        local_encontrado,
+        data_encontrado,
+        categoria,
+        descricao,
+        aprovado,
+    };
+
+    const isEditing = !!currentEditingItemId;
+    const url = isEditing
+        ? `/api/interno/itens/${currentEditingItemId}/editar/`
+        : '/api/interno/itens/novo/';
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+            throw new Error('Erro ao salvar item');
+        }
+
+        const savedItem = await response.json();
+
+        // Atualiza ou insere no array
+        const existingIndex = allItems.findIndex((it) => it.id === savedItem.id);
+        if (existingIndex >= 0) {
+            allItems[existingIndex] = savedItem;
+        } else {
+            allItems.unshift(savedItem); // item novo vai pro topo
+        }
+
+        renderItemsList();
+        currentEditingItemId = savedItem.id;
+        setFormMode('edit', savedItem);
+
+        if (itemFormMessage) {
+            itemFormMessage.textContent = isEditing
+                ? 'Item atualizado com sucesso.'
+                : 'Item cadastrado com sucesso. Você pode continuar editando ou limpar o formulário para cadastrar outro.';
+        }
+    } catch (error) {
+        console.error(error);
+        if (itemFormMessage) {
+            itemFormMessage.textContent = 'Não foi possível salvar o item. Verifique os campos e tente novamente.';
+        }
+    }
+}
+
+// ---------- Eventos na lista de itens ----------
 
 async function onItemsListClick(event) {
     const card = event.target.closest('.internal-item-card');
@@ -486,18 +624,24 @@ async function onItemsListClick(event) {
     const markReturnedBtn = event.target.closest('.item-mark-returned-button');
     const resetBtn = event.target.closest('.item-reset-button');
 
+    // 1) Botão "Marcar como devolvido"
     if (markReturnedBtn && !markReturnedBtn.disabled) {
         await markItemAsReturned(itemId);
         return;
     }
 
+    // 2) Botão "Voltar item para estoque"
     if (resetBtn && !resetBtn.disabled) {
         await resetItemToStock(itemId);
+        return;
     }
+
+    // 3) Clique em qualquer outro ponto do card -> carregar no formulário
+    startEditingItem(itemId);
 }
 
 async function markItemAsReturned(itemId) {
-    if (!confirm('Marcar este item como devolvido?')) return;
+    if (!confirm('Marcar este item como devolvido ao dono?')) return;
 
     try {
         const response = await fetch(`/api/interno/itens/${itemId}/devolver/`, {
@@ -510,12 +654,10 @@ async function markItemAsReturned(itemId) {
 
         const data = await response.json();
 
-        // Atualiza array em memória
         allItems = allItems.map((item) =>
             item.id === itemId ? { ...item, status: data.status || 'Devolvido' } : item
         );
 
-        // Atualiza também nas reivindicações
         allClaims = allClaims.map((claim) => {
             if (claim.item && claim.item.id === itemId) {
                 return {
@@ -535,7 +677,7 @@ async function markItemAsReturned(itemId) {
 }
 
 async function resetItemToStock(itemId) {
-    if (!confirm('Voltar este item para "Em estoque"?')) return;
+    if (!confirm('Voltar este item para "Em estoque"? Use apenas em caso de correção de erro.')) return;
 
     try {
         const response = await fetch(`/api/interno/itens/${itemId}/back_to_stock/`, {

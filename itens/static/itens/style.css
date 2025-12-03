@@ -1245,6 +1245,15 @@ body.internal-theme .search-bar::placeholder {
         display: none; /* Esconde o rodapé do menu no celular */
     }
 
+    .logo img {
+        max-height: 40px;
+        width: auto;
+    }
+    
+    .logo h1 {
+        font-size: 0.9rem;
+    }
+
     /* 3. Ajusta os botões do menu para rolarem horizontalmente */
     .menu {
         width: 100%;

@@ -1200,3 +1200,100 @@ body.internal-theme .search-bar::placeholder {
     color: #9ca3af; 
     opacity: 1;
 }
+
+/* ============================================================
+   RESPONSIVIDADE (Correção para Celular)
+   ============================================================ */
+
+@media (max-width: 900px) {
+    /* 1. Muda a direção da página de 'lado a lado' para 'coluna' */
+    body {
+        overflow: auto; /* Permite rolar a página inteira */
+        height: auto;
+    }
+
+    .container {
+        flex-direction: column;
+        padding: 0;
+        height: auto;
+        gap: 0;
+    }
+
+    /* 2. Transforma a Sidebar em Menu Superior (Topbar) */
+    .sidebar {
+        width: 100%;
+        height: auto;
+        flex-direction: row; /* Itens lado a lado */
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-radius: 0 0 24px 24px; /* Arredonda só embaixo */
+        position: sticky; /* Cola no topo */
+        top: 0;
+        z-index: 100;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .logo {
+        margin-bottom: 0;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .footer-sidebar {
+        display: none; /* Esconde o rodapé do menu no celular */
+    }
+
+    /* 3. Ajusta os botões do menu para rolarem horizontalmente */
+    .menu {
+        width: 100%;
+        flex-direction: row;
+        overflow-x: auto; /* Scroll horizontal se não couber */
+        padding-bottom: 5px;
+        margin-top: 5px;
+    }
+
+    .menu-item {
+        white-space: nowrap; /* Não quebra o texto do botão */
+        font-size: 0.85rem;
+        padding: 8px 16px;
+    }
+
+    /* 4. Ajusta o conteúdo principal */
+    .content {
+        border-radius: 24px 24px 0 0;
+        margin-top: -15px; /* Sobe um pouco para encaixar visualmente */
+        padding: 20px;
+        min-height: 80vh;
+    }
+
+    /* 5. Conserta os Cards "quebrados" */
+    .item-card, .internal-item-card, .claim-card {
+        flex-direction: column; /* Empilha: texto em cima, botões embaixo */
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .claim-main {
+        width: 100%;
+        padding-right: 0;
+    }
+
+    .claim-actions {
+        width: 100%;
+        align-items: stretch; /* Botões esticam a largura toda */
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .claim-actions > * {
+        flex: 1; /* Botões dividem o espaço igualmente */
+        text-align: center;
+    }
+    
+    /* 6. Formulário em uma coluna só */
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+}

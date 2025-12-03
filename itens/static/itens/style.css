@@ -1202,7 +1202,7 @@ body.internal-theme .search-bar::placeholder {
 }
 
 /* ============================================================
-   RESPONSIVIDADE: Menu "Fileira Única" Super Compacto
+   RESPONSIVIDADE: 3 Botões Compactos na Mesma Linha
    ============================================================ */
 
 @media (max-width: 900px) {
@@ -1213,11 +1213,11 @@ body.internal-theme .search-bar::placeholder {
     /* 1. BARRA FININHA NO TOPO */
     .sidebar {
         width: 100%;
-        height: 50px; /* Altura bem reduzida */
+        height: 50px;
         flex-direction: row;
         align-items: center;
-        justify-content: flex-start;
-        padding: 0 12px; /* Espaço lateral pequeno */
+        justify-content: space-between; /* Logo na esquerda, Menu no resto */
+        padding: 0 8px; /* Espaço lateral mínimo */
         border-radius: 0;
         position: sticky;
         top: 0;
@@ -1225,54 +1225,52 @@ body.internal-theme .search-bar::placeholder {
         background: #020617;
         box-shadow: 0 2px 10px rgba(0,0,0,0.4);
         border-bottom: 1px solid rgba(255,255,255,0.05);
-        gap: 10px;
+        gap: 8px;
     }
 
-    /* 2. LOGO MINIMALISTA */
+    /* 2. LOGO (Apenas ícone pequeno) */
     .logo { margin: 0; padding: 0; min-width: auto; display: flex; align-items: center; }
-    .logo h1 { display: none; } /* Esconde texto */
+    .logo h1 { display: none; }
     .logo-icon { padding: 0; background: transparent; }
-    .logo img { max-height: 24px; width: auto; } /* Ícone bem pequeno */
+    .logo img { max-height: 28px; width: auto; }
     .footer-sidebar { display: none; }
 
-    /* 3. MENU EM LINHA ÚNICA (Scroll Horizontal) */
+    /* 3. MENU (Ocupa o resto da barra) */
     .menu {
         display: flex;
         flex-direction: row;
-        flex-wrap: nowrap; /* OBRIGA a ficar na mesma linha */
         align-items: center;
-        overflow-x: auto; /* Permite rolar para o lado */
-        width: 100%;
-        gap: 8px;
+        flex: 1; /* Ocupa todo o espaço sobrando ao lado da logo */
+        width: auto;
+        gap: 4px; /* Espaço pequeno entre botões */
         margin: 0;
-        padding-right: 10px; /* Espaço no final da rolagem */
-        
-        /* Esconde a barra de rolagem visualmente */
-        scrollbar-width: none;
-        -ms-overflow-style: none;
+        overflow: hidden; /* Não deixa rolar, força caber */
     }
-    .menu::-webkit-scrollbar { display: none; }
 
-    /* 4. BOTÕES PEQUENOS E DISCRETOS */
+    /* 4. BOTÕES (Dividem o espaço igualmente) */
     .menu-item {
-        flex: 0 0 auto; /* Impede o botão de encolher ou esticar demais */
-        white-space: nowrap; /* Texto nunca quebra linha */
-        font-size: 0.75rem; /* Letra pequena (aprox 12px) */
-        padding: 4px 12px; /* Botão mais baixo e curto */
-        height: 28px; /* Altura fixa pequena */
-        border-radius: 999px;
+        flex: 1; /* MÁGICA: Cada botão pega 33% do espaço */
+        width: 0; /* Garante que dividam igual mesmo com textos diferentes */
+        white-space: nowrap; /* Texto não quebra linha */
+        font-size: 0.7rem; /* Letra pequena (aprox 11px) */
+        padding: 0 4px; /* Quase sem enchimento */
+        height: 32px; /* Altura fixa */
+        border-radius: 6px; /* Levemente arredondado */
         background: rgba(255,255,255,0.06);
         border: 1px solid rgba(255,255,255,0.05);
         display: flex;
         align-items: center;
-        justify-content: center;
+        justify-content: center; /* Centraliza o texto */
         color: #94a3b8;
+        text-overflow: ellipsis; /* Se o texto for gigante, põe ... */
+        overflow: hidden;
     }
 
     .menu-item.active {
         background: var(--primary);
         color: #fff;
         border-color: var(--primary);
+        font-weight: 600;
     }
 
     /* 5. CONTEÚDO */

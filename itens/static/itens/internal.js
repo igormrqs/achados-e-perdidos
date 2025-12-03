@@ -1,14 +1,6 @@
 // ============================================================
 // Achados e Perdidos - UnDF
 // Arquivo: internal.js
-//
-// Script do PAINEL INTERNO. Aqui eu (estudante de CC) faço:
-// - carregamento das reivindicações e itens via API interna;
-// - filtros de busca;
-// - mudança de status das reivindicações;
-// - controle de estoque (devolvido / voltar para estoque);
-// - cadastro e edição de itens (formulário);
-// - troca de abas no painel.
 // ============================================================
 
 // Estado em memória
@@ -93,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (itemFormClearButton) {
         itemFormClearButton.addEventListener('click', () => {
-            clearItemForm();
+            clearItemForm(true); // true = mostrar mensagem de limpo
         });
     }
 
@@ -452,7 +444,8 @@ function createInternalItemCard(item) {
 
     return `
         <div class="item-card claim-card internal-item-card"
-             data-item-id="${item.id}">
+             data-item-id="${item.id}"
+             style="cursor: pointer;">
             <div class="claim-main">
                 <h3>${escapeHtml(item.nome)}</h3>
                 <p class="item-location">
@@ -487,6 +480,9 @@ function createInternalItemCard(item) {
                 >
                     Voltar item para estoque
                 </button>
+                <div style="margin-top: 5px; font-size: 0.8rem; color: #666;">
+                   (Clique no card para editar)
+                </div>
             </div>
         </div>
     `;
@@ -522,6 +518,9 @@ function clearItemForm(showMessage = false) {
     }
 }
 
+// -----------------------------------------------------
+// FUNÇÃO ATUALIZADA: Mudar de aba ao clicar em editar
+// -----------------------------------------------------
 function startEditingItem(itemId) {
     const item = allItems.find((it) => it.id === itemId);
     if (!item) return;
@@ -535,6 +534,15 @@ function startEditingItem(itemId) {
     if (itemCategoriaInput) itemCategoriaInput.value = item.categoria || '';
     if (itemDescricaoInput) itemDescricaoInput.value = item.descricao || '';
     if (itemAprovadoInput) itemAprovadoInput.checked = !!item.aprovado;
+
+    // --- MUDANÇA AQUI: Forçar o clique na aba "Novo Item" ---
+    const btnNovo = document.getElementById('btnTabNovo');
+    if (btnNovo) {
+        btnNovo.click(); // Simula o clique na aba
+    }
+
+    // Scroll suave para o formulário
+    if(itemFormTitle) itemFormTitle.scrollIntoView({ behavior: 'smooth' });
 
     if (itemFormMessage) {
         itemFormMessage.textContent = 'Editando item existente. Após ajustar os dados, clique em "Salvar item".';

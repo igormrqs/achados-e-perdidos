@@ -11,7 +11,6 @@
 <body class="internal-theme">
 
     <div class="container">
-        <!-- Sidebar lateral -->
         <aside class="sidebar">
             <div class="logo">
                 <div class="logo-icon">
@@ -28,14 +27,15 @@
                 <button class="menu-item" data-tab="tab-itens">
                     Itens cadastrados
                 </button>
+                <button class="menu-item" data-tab="tab-novo" id="btnTabNovo">
+                    + Novo Item
+                </button>
             </nav>
 
             <p class="footer-sidebar">Uso interno - UnDF</p>
         </aside>
 
-        <!-- Conteúdo principal -->
         <main class="content">
-            <!-- Aba de Reivindicações -->
             <section id="tab-reivindicacoes" class="tab-content">
                 <div class="tab-header">
                     <h2>Reivindicações de Itens</h2>
@@ -55,23 +55,49 @@
                 <div id="claimsList" class="items-list"></div>
             </section>
 
-            <!-- Aba de Itens -->
             <section id="tab-itens" class="tab-content hidden">
                 <div class="tab-header">
                     <h2>Itens cadastrados</h2>
-                    <p>Cadastre novos itens encontrados e edite itens existentes. Para editar, clique em um item da lista.</p>
+                    <p>Gerencie o acervo. Para editar, clique em um item da lista.</p>
                 </div>
 
-                <!-- Formulário de cadastro/edição -->
-                <div class="form-card internal-form-card">
-                    <div class="form-header">
-                        <h3 id="itemFormTitle">Cadastrar novo item</h3>
-                        <p>
-                            Preencha os campos abaixo para registrar um item encontrado na UnDF.
-                            Para editar, clique em um item da lista de itens cadastrados.
-                        </p>
-                    </div>
+                <div class="search-container">
+                    <label for="searchItems">Buscar por nome, local ou categoria:</label>
+                    <input
+                        type="text"
+                        id="searchItems"
+                        class="search-bar"
+                        placeholder="Ex.: carteira, laboratório, chave, documento..."
+                    >
+                </div>
 
+                <div class="search-container">
+                    <label for="filterStatus">Status do item:</label>
+                    <select id="filterStatus" class="search-bar">
+                        <option value="">Todos</option>
+                        <option value="Em estoque">Em estoque</option>
+                        <option value="Reivindicado">Reivindicado</option>
+                        <option value="Devolvido">Devolvido</option>
+                    </select>
+
+                    <label for="filterAprovado">Aprovação para aparecer no site:</label>
+                    <select id="filterAprovado" class="search-bar">
+                        <option value="">Todos</option>
+                        <option value="true">Apenas aprovados</option>
+                        <option value="false">Pendentes de aprovação</option>
+                    </select>
+                </div>
+
+                <div id="itemsList" class="items-list"></div>
+            </section>
+
+            <section id="tab-novo" class="tab-content hidden">
+                <div class="tab-header">
+                    <h2 id="itemFormTitle">Cadastrar novo item</h2>
+                    <p>Preencha os campos abaixo para registrar um item encontrado na UnDF.</p>
+                </div>
+
+                <div class="form-card internal-form-card">
                     <form id="itemForm" class="form-grid">
                         <div class="form-group">
                             <label for="itemNome">Nome do item *</label>
@@ -117,37 +143,8 @@
 
                     <p id="itemFormMessage" class="info-text"></p>
                 </div>
-
-                <!-- Filtros e lista de itens -->
-                <div class="search-container">
-                    <label for="searchItems">Buscar por nome, local ou categoria:</label>
-                    <input
-                        type="text"
-                        id="searchItems"
-                        class="search-bar"
-                        placeholder="Ex.: carteira, laboratório, chave, documento..."
-                    >
-                </div>
-
-                <div class="search-container">
-                    <label for="filterStatus">Status do item:</label>
-                    <select id="filterStatus" class="search-bar">
-                        <option value="">Todos</option>
-                        <option value="Em estoque">Em estoque</option>
-                        <option value="Reivindicado">Reivindicado</option>
-                        <option value="Devolvido">Devolvido</option>
-                    </select>
-
-                    <label for="filterAprovado">Aprovação para aparecer no site:</label>
-                    <select id="filterAprovado" class="search-bar">
-                        <option value="">Todos</option>
-                        <option value="true">Apenas aprovados</option>
-                        <option value="false">Pendentes de aprovação</option>
-                    </select>
-                </div>
-
-                <div id="itemsList" class="items-list"></div>
             </section>
+
         </main>
     </div>
 

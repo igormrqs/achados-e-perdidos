@@ -1178,3 +1178,25 @@ body.internal-theme .claim-helper-text,
 body.internal-theme .claim-status-label {
     color: #9ca3af;
 }
+
+/* ============================================================
+   CORREÇÃO: Cor do texto nos inputs do Painel Interno
+   ============================================================ */
+
+/* Força o fundo escuro e a letra clara nos campos */
+body.internal-theme .form-group input, 
+body.internal-theme .form-group textarea, 
+body.internal-theme .form-group select,
+body.internal-theme .search-bar {
+    background-color: #111827;  /* Fundo escuro */
+    color: #f3f4f6;             /* Texto CLARO (quase branco) */
+    border: 1px solid #374151;  /* Borda cinza escura */
+}
+
+/* Garante que o texto de dica (placeholder) apareça em cinza */
+body.internal-theme .form-group input::placeholder,
+body.internal-theme .form-group textarea::placeholder,
+body.internal-theme .search-bar::placeholder {
+    color: #9ca3af; 
+    opacity: 1;
+}
